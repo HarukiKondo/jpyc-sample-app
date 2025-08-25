@@ -1,0 +1,27 @@
+services:
+  application:
+    build:
+      context: .
+      dockerfile: ./docker/development/Dockerfile
+    tty: true
+    volumes:
+      - ./:/application
+      - node_modules:/application/node_modules
+      - apps_node_modules:/application/apps/node_modules
+    ports:
+      - 3000:3000  # Next.jsフロントエンド
+    depends_on:
+      - anvil
+    working_dir: /application
+
+  anvil:
+    build:
+      context: .
+      dockerfile: ./docker/anvil/Dockerfile
+    tty: true
+    ports:
+      - 8545:8545
+
+volumes:
+  node_modules:
+  apps_node_modules: 
