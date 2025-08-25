@@ -45,12 +45,9 @@ export default function ApproveTab() {
     try {
       const value = parseJPYC(amount);
       
-      writeContract({
-        address: jpycAddress,
-        abi: JPYC_ABI,
-        functionName: 'approve',
-        args: [gatewayAddress, value],
-      });
+      const approveHash = await executeApprove(gatewayAddress, value);
+      console.log('Approve TX:', approveHash);
+      
     } catch (error) {
       console.error('Approve エラー:', error);
     }
