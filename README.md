@@ -39,6 +39,17 @@ jpyc-sample-app/
 │   │   └── PaymentGateway.t.sol
 │   ├── foundry.toml       # Foundry設定
 │   └── .env               # コントラクト用環境変数（要作成）
+├── docker/                # Docker設定
+│   ├── anvil/             # Anvilローカルブロックチェーン
+│   │   └── Dockerfile
+│   └── development/       # 開発環境
+│       └── Dockerfile
+├── .devcontainer/         # GitHub Codespaces設定
+│   ├── devcontainer.json  # Codespaces構成
+│   ├── setup.sh          # 初期セットアップ
+│   └── start-dev.sh      # 開発環境起動
+├── compose.yaml           # Docker Compose設定
+├── .dockerignore          # Docker除外設定
 ├── .gitignore             # Git除外設定
 └── README.md              # このファイル
 ```
@@ -47,9 +58,18 @@ jpyc-sample-app/
 
 ### 📋 前提条件
 
+#### 通常の開発環境
 - **Node.js** 18.0.0+
 - **pnpm** (推奨) または npm
 - **Foundry** ([インストール手順](https://book.getfoundry.sh/getting-started/installation))
+- **MetaMask** またはウォレット拡張
+
+#### Docker開発環境（推奨）
+- **Docker** & **Docker Compose**
+- **MetaMask** またはウォレット拡張
+
+#### GitHub Codespaces環境（最も簡単）
+- **GitHubアカウント**
 - **MetaMask** またはウォレット拡張
 
 ### 🔧 1. リポジトリのクローン
@@ -58,6 +78,152 @@ jpyc-sample-app/
 git clone https://github.com/jcam1/jpyc-sample-app.git
 cd jpyc-sample-app
 ```
+
+## ☁️ GitHub Codespaces環境（最も簡単）
+
+ブラウザ上で完全な開発環境を利用できます。
+
+### 🚀 Codespacesでの起動
+
+1. **GitHubリポジトリページ** で緑色の「Code」ボタンをクリック
+2. **「Codespaces」タブ** を選択
+3. **「Create codespace on main」** をクリック
+
+### ⚙️ 初回セットアップ
+
+Codespacesが起動したら、自動的にセットアップが実行されます：
+
+```bash
+# 初回のみ、セットアップが自動実行されます
+# 手動で実行する場合:
+bash .devcontainer/setup.sh
+```
+
+### 🎯 開発環境起動
+
+```bash
+# ワンコマンドで開発環境起動（Anvil + コントラクトデプロイ + フロントエンド）
+bash .devcontainer/start-dev.sh
+```
+
+### 📱 Codespaces環境でのMetaMask設定
+
+Codespacesでは**ポート転送URL**を使用してMetaMaskを設定：
+
+1. **ポートタブ**（VS Code下部）で8545番ポートの転送URLをコピー
+2. MetaMaskのネットワーク設定:
+   - **ネットワーク名**: Anvil Codespaces
+   - **RPC URL**: `https://xxxxx-8545.app.github.dev` (ポート転送URL)
+   - **チェーンID**: `31337`
+   - **通貨記号**: `ETH`
+
+### 🔑 テストアカウント
+
+```
+プライベートキー: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+```
+
+### 💡 Codespacesでの開発Tips
+
+- **VSCode拡張機能**: Solidity・TypeScript・Tailwind CSS拡張が自動インストール
+- **ポート自動転送**: 3000番（フロントエンド）と8545番（Anvil）が自動で公開
+- **永続化**: Codespacesは設定やインストール済みパッケージを保持
+- **無料枠**: 月120コアアワーまで無料利用可能
+
+## 🐳 Docker開発環境
+
+Docker環境を使用することで、Node.js・Foundry・Anvilの複雑なセットアップを自動化できます。
+
+### 🚀 環境構築
+
+#### dockerイメージをビルドして起動
+
+```sh
+docker compose build
+docker compose up -d
+```
+
+#### コンテナへログイン
+
+```sh
+docker compose exec application bash
+```
+
+#### Foundry セットアップ
+
+```sh
+cd /application/contracts
+forge install
+```
+
+#### 依存関係のインストール
+
+```sh
+# ルートディレクトリの依存関係
+cd /application
+pnpm install
+
+# フロントエンドの依存関係
+cd /application/apps
+pnpm install
+```
+
+#### コントラクトのデプロイ
+
+```sh
+# 環境変数を設定してデプロイ
+cd /application/contracts
+PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 forge script script/DeployLocal.s.sol --rpc-url http://anvil:8545 --broadcast --tc DeployLocal
+```
+
+#### フロントエンドを起動する
+
+```sh
+cd /application/apps
+pnpm dev
+```
+
+🎉 **http://localhost:3000** でアプリケーションにアクセス！
+
+### 🧪 テスト
+
+#### Foundryテスト実行
+
+```sh
+# Docker内から実行
+forge test -vvv
+
+# ウォッチモード
+forge test --watch
+
+# 特定のテストのみ
+forge test --match-test testSendToken -vvv
+```
+
+### 🚀 デプロイ
+
+#### ローカル開発環境
+
+```sh
+# ローカルAnvilにデプロイ（Docker内から実行）
+docker compose exec application bash -c "cd /application/contracts && PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 forge script script/DeployLocal.s.sol --rpc-url http://anvil:8545 --broadcast --tc DeployLocal"
+```
+
+### 📱 Docker環境でのMetaMask設定
+
+Docker環境では以下の設定でローカルネットワークに接続：
+
+- **ネットワーク名**: Anvil Local (Docker)
+- **RPC URL**: `http://localhost:8545`
+- **チェーンID**: `31337`
+- **通貨記号**: `ETH`
+
+**テストアカウント**:
+```
+プライベートキー: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+```
+
+## 💻 通常の開発環境
 
 ### ⚙️ 2. フロントエンドのセットアップ
 

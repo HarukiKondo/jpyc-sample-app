@@ -1,0 +1,47 @@
+{
+	"name": "JPYC Sample App",
+	"image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bullseye",
+	"features": {
+		"ghcr.io/devcontainers/features/git:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.vscode-typescript-next",
+				"esbenp.prettier-vscode",
+				"bradlc.vscode-tailwindcss",
+				"ms-vscode.vscode-json",
+				"PKief.material-icon-theme",
+				"JuanBlanco.solidity",
+				"NomicFoundation.hardhat-solidity",
+				"tintinweb.solidity-visual-auditor"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash",
+				"editor.formatOnSave": true,
+				"editor.defaultFormatter": "esbenp.prettier-vscode",
+				"typescript.preferences.importModuleSpecifier": "relative",
+				"solidity.compileUsingRemoteVersion": "latest",
+				"solidity.defaultCompiler": "remote"
+			}
+		}
+	},
+	"postCreateCommand": "bash .devcontainer/setup.sh",
+	"forwardPorts": [3000, 8545],
+	"portsAttributes": {
+		"3000": {
+			"label": "JPYC Sample App Frontend",
+			"onAutoForward": "notify"
+		},
+		"8545": {
+			"label": "Anvil Local Blockchain",
+			"onAutoForward": "silent"
+		}
+	},
+	"remoteUser": "node",
+	"mounts": [
+		"source=${localWorkspaceFolder}/.devcontainer/anvil-data,target=/home/node/.anvil,type=bind,consistency=cached"
+	]
+} 

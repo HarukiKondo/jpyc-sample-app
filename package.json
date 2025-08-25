@@ -1,0 +1,22 @@
+{
+  "name": "jpyc-sample-app",
+  "version": "1.0.0",
+  "description": "JPYC React SDK Hands-on Sample Application",
+  "private": true,
+  "scripts": {
+    "dev": "cd apps && pnpm dev",
+    "dev:exercise": "cd apps && pnpm dev:exercise",
+    "dev:exercise1": "cd apps && pnpm dev:exercise1",
+    "dev:exercise2": "cd apps && pnpm dev:exercise2", 
+    "dev:exercise3": "cd apps && pnpm dev:exercise3",
+    "dev:exercise4": "cd apps && pnpm dev:exercise4",
+    "build": "cd apps && pnpm build",
+    "start": "cd apps && pnpm start",
+    "lint": "cd apps && pnpm lint",
+    "contracts:deploy": "cd contracts && forge script script/DeployLocal.s.sol:DeployLocal --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast",
+    "anvil": "cd contracts && anvil"
+  },
+  "keywords": ["jpyc", "web3", "ethereum", "erc20", "permit", "sdk", "hands-on"],
+  "author": "JPYC",
+  "license": "MIT"
+} 

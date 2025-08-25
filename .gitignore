@@ -107,6 +107,10 @@ temp/
 package-lock.json
 yarn.lock
 
+# pnpm cache and store
+.pnpm-store/
+.pnpm-debug.log*
+
 # Local testing files
 LOCAL_TESTING_BACKUP.md
 
@@ -122,4 +126,54 @@ __pycache__/
 .Python
 env/
 venv/
-.venv/ 
+.venv/
+
+# Docker
+.dockerignore.bak
+docker-compose.override.yml
+
+# GitHub Codespaces
+.devcontainer/anvil-data/
+.devcontainer/*.log
+
+# Docker volumes data
+docker-data/
+postgres-data/
+anvil-data/
+
+# JetBrains IDEs
+*.iml
+.idea/
+
+# Visual Studio Code
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+!.vscode/recommended-extensions.json
+
+# Foundry additional ignores
+contracts/lib/
+contracts/cache_forge/
+
+# Local configuration overrides
+.env.override
+.env.docker
+.env.codespaces
+
+# Temporary development files
+*.tmp
+*.temp
+.scratch/
+scratch/
+
+# macOS additional
+.com.apple.timemachine.donotpresent
+
+# Windows additional
+desktop.ini
+$RECYCLE.BIN/
+
+# Linux additional
+.fuse_hidden*
+.directory
+.Trash-* 
