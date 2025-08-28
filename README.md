@@ -10,6 +10,123 @@ JPYCを使った決済フローをハンズオンで実装・理解するため�
 - **技術スタック**: Next.js + viem + RainbowKit / Foundry
 - **将来対応**: viem部分を **JPYC SDK** に差し替え可能な設計
 
+## 🚀 クイックスタート（GitHub Codespaces推奨）
+
+**最も簡単で確実な方法**: ブラウザ上で完全な開発環境を利用できます。
+
+### ☁️ 1. Codespacesでの起動
+
+1. **GitHubリポジトリページ** で緑色の「**Code**」ボタンをクリック
+2. **「Codespaces」タブ** を選択
+3. **「Create codespace on main」** をクリック
+
+### ⚙️ 2. 自動セットアップの確認
+
+Codespacesが起動したら、**自動セットアップが実行される**はずです：
+
+```bash
+# セットアップ内容（自動実行）:
+# - pnpm インストール
+# - Foundry インストール  
+# - プロジェクト依存関係インストール
+# - .env.local テンプレート作成
+```
+
+もしセットアップが実行されていない場合、手動で実行：
+
+```bash
+bash .devcontainer/setup.sh
+```
+
+### 🔧 3. 開発環境起動
+
+**ターミナル1（Anvil起動）**:
+```bash
+cd contracts
+anvil --host 0.0.0.0 --port 8545 --gas-limit 30000000 --gas-price 0 --base-fee 0 --no-cors
+```
+
+**ターミナル2（コントラクトデプロイ）**:
+```bash
+cd contracts
+PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 forge script script/DeployLocal.s.sol --rpc-url http://localhost:8545 --broadcast --tc DeployLocal
+```
+
+**ターミナル3（フロントエンド起動）**:
+```bash
+cd apps
+pnpm dev
+```
+
+### 🌐 4. アクセス確認
+
+- **フロントエンド**: `https://xxxxx-3000.app.github.dev` (ポート転送URL)
+- **Anvil**: `https://xxxxx-8545.app.github.dev` (内部プロキシ経由)
+
+VS Codeの**PORTS**タブで転送URLを確認できます。
+
+### 📱 5. MetaMask設定（Codespaces用）
+
+**重要**: Codespaces環境では**ポート転送URL**を使用：
+
+1. **PORTS**タブで8545番ポートの転送URLをコピー
+2. MetaMaskのネットワーク設定:
+   - **ネットワーク名**: `Anvil Codespaces`
+   - **RPC URL**: `https://xxxxx-8545.app.github.dev` (実際のポート転送URL)
+   - **チェーンID**: `31337`
+   - **通貨記号**: `ETH`
+
+### 🔑 6. テストアカウントのインポート
+
+```
+プライベートキー: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+```
+
+### 🎉 7. 動作確認
+
+1. **ウォレット接続**: RainbowKitでMetaMaskを接続
+2. **残高確認**: `Balance`タブでJPYC残高を確認（100,000 JPYC表示されるはず）
+3. **送金テスト**: `Transfer`タブで小額送金をテスト
+4. **決済テスト**: `Purchase`タブで商品購入をテスト
+
+### 💡 Codespaces環境での特徴
+
+- **VSCode拡張機能**: Solidity・TypeScript・Tailwind CSS拡張が自動インストール
+- **ポート自動転送**: 3000番（フロントエンド）と8545番（Anvil）が自動で公開
+- **APIプロキシ**: CORS問題を回避するため`/api/anvil-proxy`経由でAnvilに接続
+- **永続化**: Codespacesは設定やインストール済みパッケージを保持
+- **無料枠**: 月120コアアワーまで無料利用可能
+
+### 🛠️ トラブルシューティング（Codespaces）
+
+#### フロントエンドでエラーが出る場合
+
+```bash
+# Next.js再起動
+cd apps
+pkill -f "next dev"
+pnpm dev
+```
+
+#### Anvilに接続できない場合
+
+```bash
+# Anvil再起動
+pkill anvil
+cd contracts
+anvil --host 0.0.0.0 --port 8545 --gas-limit 30000000 --gas-price 0 --base-fee 0 --no-cors
+```
+
+#### 残高が表示されない場合
+
+```bash
+# コントラクト再デプロイ
+cd contracts
+PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 forge script script/DeployLocal.s.sol --rpc-url http://localhost:8545 --broadcast --tc DeployLocal
+```
+
+---
+
 ## 🏗️ プロジェクト構造
 
 ```
@@ -54,233 +171,87 @@ jpyc-sample-app/
 └── README.md              # このファイル
 ```
 
-## 🚀 クイックスタート
-
-### 📋 前提条件
-
-#### 通常の開発環境
-- **Node.js** 18.0.0+
-- **pnpm** (推奨) または npm
-- **Foundry** ([インストール手順](https://book.getfoundry.sh/getting-started/installation))
-- **MetaMask** またはウォレット拡張
-
-#### Docker開発環境（推奨）
-- **Docker** & **Docker Compose**
-- **MetaMask** またはウォレット拡張
-
-#### GitHub Codespaces環境（最も簡単）
-- **GitHubアカウント**
-- **MetaMask** またはウォレット拡張
-
-### 🔧 1. リポジトリのクローン
-
-```bash
-git clone https://github.com/jcam1/jpyc-sample-app.git
-cd jpyc-sample-app
-```
-
-## ☁️ GitHub Codespaces環境（最も簡単）
-
-ブラウザ上で完全な開発環境を利用できます。
-
-### 🚀 Codespacesでの起動
-
-1. **GitHubリポジトリページ** で緑色の「Code」ボタンをクリック
-2. **「Codespaces」タブ** を選択
-3. **「Create codespace on main」** をクリック
-
-### ⚙️ 初回セットアップ
-
-Codespacesが起動したら、自動的にセットアップが実行されます：
-
-```bash
-# 初回のみ、セットアップが自動実行されます
-# 手動で実行する場合:
-bash .devcontainer/setup.sh
-```
-
-### 🎯 開発環境起動
-
-```bash
-# ワンコマンドで開発環境起動（Anvil + コントラクトデプロイ + フロントエンド）
-bash .devcontainer/start-dev.sh
-```
-
-### 📱 Codespaces環境でのMetaMask設定
-
-Codespacesでは**ポート転送URL**を使用してMetaMaskを設定：
-
-1. **ポートタブ**（VS Code下部）で8545番ポートの転送URLをコピー
-2. MetaMaskのネットワーク設定:
-   - **ネットワーク名**: Anvil Codespaces
-   - **RPC URL**: `https://xxxxx-8545.app.github.dev` (ポート転送URL)
-   - **チェーンID**: `31337`
-   - **通貨記号**: `ETH`
-
-### 🔑 テストアカウント
-
-```
-プライベートキー: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-```
-
-### 💡 Codespacesでの開発Tips
-
-- **VSCode拡張機能**: Solidity・TypeScript・Tailwind CSS拡張が自動インストール
-- **ポート自動転送**: 3000番（フロントエンド）と8545番（Anvil）が自動で公開
-- **永続化**: Codespacesは設定やインストール済みパッケージを保持
-- **無料枠**: 月120コアアワーまで無料利用可能
-
-## 🐳 Docker開発環境
+## 🐳 Docker開発環境（代替方法）
 
 Docker環境を使用することで、Node.js・Foundry・Anvilの複雑なセットアップを自動化できます。
 
 ### 🚀 環境構築
 
-#### dockerイメージをビルドして起動
-
-```sh
+```bash
+# 1. イメージビルド・起動
 docker compose build
 docker compose up -d
-```
 
-#### コンテナへログイン
-
-```sh
+# 2. コンテナへログイン
 docker compose exec application bash
-```
 
-#### Foundry セットアップ
-
-```sh
+# 3. Foundry セットアップ
 cd /application/contracts
 forge install
-```
 
-#### 依存関係のインストール
+# 4. 依存関係インストール
+cd /application && pnpm install
+cd /application/apps && pnpm install
 
-```sh
-# ルートディレクトリの依存関係
-cd /application
-pnpm install
-
-# フロントエンドの依存関係
-cd /application/apps
-pnpm install
-```
-
-#### コントラクトのデプロイ
-
-```sh
-# 環境変数を設定してデプロイ
+# 5. コントラクトデプロイ
 cd /application/contracts
 PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 forge script script/DeployLocal.s.sol --rpc-url http://anvil:8545 --broadcast --tc DeployLocal
-```
 
-#### フロントエンドを起動する
-
-```sh
+# 6. フロントエンド起動
 cd /application/apps
 pnpm dev
-```
-
-🎉 **http://localhost:3000** でアプリケーションにアクセス！
-
-### 🧪 テスト
-
-#### Foundryテスト実行
-
-```sh
-# Docker内から実行
-forge test -vvv
-
-# ウォッチモード
-forge test --watch
-
-# 特定のテストのみ
-forge test --match-test testSendToken -vvv
-```
-
-### 🚀 デプロイ
-
-#### ローカル開発環境
-
-```sh
-# ローカルAnvilにデプロイ（Docker内から実行）
-docker compose exec application bash -c "cd /application/contracts && PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 forge script script/DeployLocal.s.sol --rpc-url http://anvil:8545 --broadcast --tc DeployLocal"
 ```
 
 ### 📱 Docker環境でのMetaMask設定
 
-Docker環境では以下の設定でローカルネットワークに接続：
-
-- **ネットワーク名**: Anvil Local (Docker)
+- **ネットワーク名**: `Anvil Local (Docker)`
 - **RPC URL**: `http://localhost:8545`
 - **チェーンID**: `31337`
 - **通貨記号**: `ETH`
 
-**テストアカウント**:
-```
-プライベートキー: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-```
+## 💻 ローカル開発環境（代替方法）
 
-## 💻 通常の開発環境
+### 📋 前提条件
 
-### ⚙️ 2. フロントエンドのセットアップ
+- **Node.js** 18.0.0+
+- **pnpm** (推奨) または npm
+- **Foundry** ([インストール手順](https://book.getfoundry.sh/getting-started/installation))
+- **MetaMask** またはウォレット拡張
+
+### 🔧 セットアップ手順
 
 ```bash
-cd apps
+# 1. リポジトリクローン
+git clone https://github.com/jcam1/jpyc-sample-app.git
+cd jpyc-sample-app
+
+# 2. 依存関係インストール
 pnpm install
-```
+cd apps && pnpm install
 
-**環境変数ファイルを作成:**
-```bash
-# apps/.env.local
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id
-```
+# 3. 環境変数設定
+# apps/.env.local を作成:
+echo "NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id" > apps/.env.local
 
-[WalletConnect](https://cloud.walletconnect.com/) でProject IDを取得してください。
-
-### 🔗 3. ローカル開発（推奨）
-
-Anvilローカルネットワークでの開発が最も簡単です：
-
-#### Step 1: Anvilネットワークを起動
-
-```bash
+# 4. Anvil起動
 cd contracts
 anvil
-```
 
-#### Step 2: コントラクトをデプロイ
-
-```bash
-# 新しいターミナルで
+# 5. コントラクトデプロイ（新しいターミナル）
 cd contracts
-forge script script/DeployLocal.s.sol --fork-url http://localhost:8545 --broadcast
-```
+PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 forge script script/DeployLocal.s.sol --rpc-url http://localhost:8545 --broadcast --tc DeployLocal
 
-#### Step 3: MetaMaskにAnvilネットワークを追加
-
-- **ネットワーク名**: Anvil Local
-- **RPC URL**: `http://localhost:8545`
-- **チェーンID**: `31337`
-- **通貨記号**: `ETH`
-
-#### Step 4: テストアカウントをインポート
-
-Anvilの最初のアカウントをMetaMaskにインポート：
-```
-プライベートキー: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-```
-
-#### Step 5: フロントエンドを起動
-
-```bash
+# 6. フロントエンド起動（新しいターミナル）
 cd apps
 pnpm dev
 ```
 
-🎉 **http://localhost:3000** でアプリケーションにアクセス！
+### 📱 MetaMask設定（ローカル）
+
+- **ネットワーク名**: `Anvil Local`
+- **RPC URL**: `http://localhost:8545`
+- **チェーンID**: `31337`
+- **通貨記号**: `ETH`
 
 ### 🌐 テストネット開発
 
