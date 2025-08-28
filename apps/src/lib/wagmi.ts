@@ -13,10 +13,15 @@ const anvilLocal: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['http://127.0.0.1:8545', 'http://0.0.0.0:8545'],
+      http: [
+        // 環境変数を最優先、Codespace環境ではポート転送URLまたはプロキシを使用
+        process.env.NEXT_PUBLIC_RPC_URL || '/api/anvil-proxy',
+      ],
     },
     public: {
-      http: ['http://127.0.0.1:8545', 'http://0.0.0.0:8545'],
+      http: [
+        process.env.NEXT_PUBLIC_RPC_URL || '/api/anvil-proxy',
+      ],
     },
   },
   blockExplorers: undefined,
@@ -25,7 +30,7 @@ const anvilLocal: Chain = {
 
 export const config = getDefaultConfig({
   appName: 'JPYC Sample App',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
+  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'demo-project-id-for-development',
   chains: [sepolia, polygonAmoy, avalancheFuji, anvilLocal],
   ssr: true,
 }); 
