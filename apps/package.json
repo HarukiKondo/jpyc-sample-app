@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "dev:exercise": "cross-env EXERCISE_MODE=all next dev --turbopack",
+    "dev:exercise": "cross-env EXERCISE_MODE=all next dev",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"
