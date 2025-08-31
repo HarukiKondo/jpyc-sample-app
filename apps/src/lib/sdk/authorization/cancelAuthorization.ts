@@ -85,6 +85,6 @@ export async function createCancelAuthorizationSignature(
   };
 }
 
-// JPYCではauthorizationStateが実装されていないため、
-// noncesマッピングを使用してnonceの状態をチェックすることができない。
-// 代わりに、キャンセル実行時にエラーが発生するかどうかで判断する。
+// JPYCではauthorizationState関数が実装されており、
+// 指定されたnonceの使用状態を確認することができます。
+// authorizationState(authorizer, nonce)でnonce状態をチェック可能。
