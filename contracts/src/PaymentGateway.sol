@@ -21,8 +21,6 @@ interface IJPYC3009 {
     ) external;
 }
 
-
-
 contract PaymentGateway is ReentrancyGuard {
     using SafeERC20 for IERC20;
 

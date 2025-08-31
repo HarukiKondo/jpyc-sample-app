@@ -1,5 +1,5 @@
-import { getPublicClientInstance } from '../instance';
-import { getJPYCAddress } from '../../core/config';
+import { getPublicClientInstance } from '../sdk/instance';
+import { getJPYCAddress } from '../core/config';
 import JPYC_ABI from "@/abi/JPYC.json";
 
 /**

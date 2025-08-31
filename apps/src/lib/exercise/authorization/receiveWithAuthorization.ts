@@ -5,33 +5,7 @@
 // import { getJPYCAddress } from '../../core/config';
 // import JPYC_ABI from "@/abi/JPYC.json";
 
-/**
- * EIP-3009 Receive with Authorization署名を作成
- * 
- * @param from - 送信者アドレス
- * @param to - 受信者アドレス（自分）
- * @param value - 転送額（wei単位）
- * @param validAfter - 有効開始時刻（UNIX timestamp）
- * @param validBefore - 有効終了時刻（UNIX timestamp）
- * @param nonce - 一意のnonce（32bytes）
- * @returns Promise<{ v: number; r: string; s: string; }> - 署名データ
- * 
- * ヒント:
- * 1. Transfer with Authorizationと同様だが、message構造が異なる
- * 2. types定義でReceiveWithAuthorizationを設定
- * 3. 送信者（from）が署名を作成する
- */
-export async function createReceiveWithAuthorizationSignature(
-  from: `0x${string}`,
-  to: `0x${string}`,
-  value: bigint,
-  validAfter: bigint,
-  validBefore: bigint,
-  nonce: `0x${string}`
-): Promise<{ v: number; r: `0x${string}`; s: `0x${string}` }> {
-  // TODO: ここに実装を追加してください
-  throw new Error("createReceiveWithAuthorizationSignature は未実装です。実装してください！");
-}
+
 
 /**
  * Receive with Authorizationを実行

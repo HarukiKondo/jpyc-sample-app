@@ -1,7 +1,7 @@
 import { getWalletClient } from '@wagmi/core';
 import { hexToSignature } from "viem";
-import { config } from '../../wagmi';
-import { getJPYCAddress } from '../../core/config';
+import { config } from '../wagmi';
+import { getJPYCAddress } from '../core/config';
 import { getPermitNonce } from './getPermitNonce';
 
 /**

@@ -6,10 +6,6 @@
   "scripts": {
     "dev": "cd apps && pnpm dev",
     "dev:exercise": "cd apps && pnpm dev:exercise",
-    "dev:exercise1": "cd apps && pnpm dev:exercise1",
-    "dev:exercise2": "cd apps && pnpm dev:exercise2", 
-    "dev:exercise3": "cd apps && pnpm dev:exercise3",
-    "dev:exercise4": "cd apps && pnpm dev:exercise4",
     "build": "cd apps && pnpm build",
     "start": "cd apps && pnpm start",
     "lint": "cd apps && pnpm lint",

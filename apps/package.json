@@ -3,13 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:exercise": "cross-env EXERCISE_MODE=all next dev",
-    "dev:exercise1": "cross-env EXERCISE_MODE=exercise1 next dev",
-    "dev:exercise2": "cross-env EXERCISE_MODE=exercise2 next dev",
-    "dev:exercise3": "cross-env EXERCISE_MODE=exercise3 next dev",
-    "dev:exercise4": "cross-env EXERCISE_MODE=exercise4 next dev",
-    "build": "next build",
+    "dev": "next dev --turbopack",
+    "dev:exercise": "cross-env EXERCISE_MODE=all next dev --turbopack",
+    "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"
   },

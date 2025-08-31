@@ -21,3 +21,5 @@ export async function getJPYCBalance(address: `0x${string}`): Promise<bigint> {
   // TODO: ここに実装を追加してください
   throw new Error("getJPYCBalance は未実装です。実装してください！");
 }
+
+export {};

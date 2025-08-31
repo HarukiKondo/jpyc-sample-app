@@ -18,6 +18,7 @@ export default function ApproveTab() {
   const [amount, setAmount] = useState<string>('');
   const [currentAllowance, setCurrentAllowance] = useState<bigint>(BigInt(0));
   const [loadingAllowance, setLoadingAllowance] = useState(false);
+  const [approveError, setApproveError] = useState<string>('');
 
   // アドレス取得
   const jpycAddress = getJPYCAddress();
@@ -29,10 +30,12 @@ export default function ApproveTab() {
     
     try {
       setLoadingAllowance(true);
+      setApproveError('');
       const allowance = await getJPYCAllowance(address, gatewayAddress);
       setCurrentAllowance(allowance);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Allowance取得エラー:', error);
+      setApproveError(error.message || 'Allowance取得に失敗しました');
     } finally {
       setLoadingAllowance(false);
     }
@@ -43,13 +46,15 @@ export default function ApproveTab() {
     if (!amount || !isConnected) return;
 
     try {
+      setApproveError('');
       const value = parseJPYC(amount);
       
       const approveHash = await executeApprove(gatewayAddress, value);
       console.log('Approve TX:', approveHash);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Approve エラー:', error);
+      setApproveError(error.message || 'Approve実行に失敗しました');
     }
   };
 
@@ -184,7 +189,7 @@ export default function ApproveTab() {
             </div>
 
             {/* エラー表示 */}
-            {error && (
+            {(error || approveError) && (
               <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl">
                 <div className="flex items-start">
                   <div className="w-6 h-6 bg-red-100 rounded-lg flex items-center justify-center mr-3 mt-0.5">
@@ -193,8 +198,12 @@ export default function ApproveTab() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-red-900">Approveエラー</h4>
-                    <p className="text-sm text-red-700 mt-1">{error.message}</p>
+                    <h4 className="font-semibold text-red-900">
+                      {approveError ? 'SDK実装エラー' : 'Approveエラー'}
+                    </h4>
+                    <p className="text-sm text-red-700 mt-1 whitespace-pre-line">
+                      {approveError || error?.message}
+                    </p>
                   </div>
                 </div>
               </div>
