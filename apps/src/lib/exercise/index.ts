@@ -1,4 +1,7 @@
-// ===== SDK完成版 統合エクスポート =====
+// ===== SDK学習用 エクササイズバージョン =====
+// 実装はあなた自身で行ってください！
+
+// Force TypeScript module resolution
 
 // インスタンス
 export * from './instance';
@@ -21,6 +24,17 @@ export { createPermitSignature } from './permit/createPermitSignature';
 export { executeBroadcastPermit } from './permit/executeBroadcastPermit';
 
 // Authorization機能 (EIP-3009)
-export { executeTransferWithAuthorization, createTransferWithAuthorizationSignature, generateNonce, generateValidityWindow } from './authorization/transferWithAuthorization';
-export { executeReceiveWithAuthorization, createReceiveWithAuthorizationSignature } from './authorization/receiveWithAuthorization';
-export { executeCancelAuthorization, createCancelAuthorizationSignature } from './authorization/cancelAuthorization'; 
+export { 
+  executeTransferWithAuthorization, 
+  createTransferWithAuthorizationSignature, 
+  generateNonce, 
+  generateValidityWindow 
+} from './authorization/transferWithAuthorization';
+export { 
+  executeReceiveWithAuthorization, 
+  createReceiveWithAuthorizationSignature 
+} from './authorization/receiveWithAuthorization';
+export { 
+  executeCancelAuthorization, 
+  createCancelAuthorizationSignature 
+} from './authorization/cancelAuthorization';

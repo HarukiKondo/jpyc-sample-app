@@ -159,9 +159,18 @@ export default function ApproveTab() {
                     {isPending ? '署名待ち...' : '処理中...'}
                   </div>
                 ) : (
-                  'Approve実行'
+                  'JPYC Approve実行'
                 )}
               </button>
+
+              {/* 説明テキスト */}
+              {isPending && (
+                <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    ⚠️ ウォレットで「NFT Approval」と表示される場合がありますが、これはJPYCトークン（ERC20）のApprove操作です。
+                  </p>
+                </div>
+              )}
 
               {/* Purchaseタブへのボタン */}
               {currentAllowance > BigInt(0) && (

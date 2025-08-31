@@ -9,7 +9,7 @@ import JPYC_ABI from '@/abi/JPYC.json';
 import PaymentGateway from '@/abi/PaymentGateway.json';
 
 interface TransactionLog {
-  type: 'Transfer' | 'OrderPaid';
+  type: 'Transfer' | 'OrderPaid' | 'Approval' | 'AuthorizationUsed';
   blockNumber: bigint;
   transactionHash: string;
   from?: string;
@@ -18,11 +18,13 @@ interface TransactionLog {
   orderId?: string;
   timestamp?: number;
   blockTime?: string;
+  spender?: string;  // Approvalイベント用
+  nonce?: string;    // AuthorizationUsedイベント用
 }
 
 // Merchant Address - .env.localで NEXT_PUBLIC_MERCHANT_ADDRESS を設定可能
 const MERCHANT_ADDRESS = (process.env.NEXT_PUBLIC_MERCHANT_ADDRESS as `0x${string}`) || "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Account #1
-// const MERCHANT_ADDRESS = "0x92749945df31Dd49d105d9A35A1C65F6a4A4a44A";
+// const MERCHANT_ADDRESS = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
 
 export default function AdminTab() {
   const { isConnected } = useAccount();
@@ -65,6 +67,13 @@ export default function AdminTab() {
 
       console.log('Latest Block:', latestBlock.toString());
       console.log('From Block:', fromBlock.toString());
+      
+      // 現在のネットワークとチェーンIDを再確認
+      console.log('Current network info:', {
+        chainId: await publicClient.getChainId(),
+        blockNumber: await publicClient.getBlockNumber(),
+        transport: publicClient.transport
+      });
 
       // Merchant宛のTransferイベントを取得
       const transferLogs = await publicClient.getContractEvents({
@@ -82,6 +91,11 @@ export default function AdminTab() {
       });
 
       console.log('Transfer Logs:', transferLogs.length);
+      console.log('Transfer Logs Detail:', transferLogs.map(log => ({
+        from: (log as any).args?.from,
+        to: (log as any).args?.to,
+        value: (log as any).args?.value?.toString()
+      })));
 
       // OrderPaidイベントを取得（PaymentGateway経由の決済）
       const orderPaidLogs = await publicClient.getContractEvents({
@@ -96,6 +110,37 @@ export default function AdminTab() {
       });
 
       console.log('OrderPaid Logs:', orderPaidLogs.length);
+
+      // Approvalイベントを取得（PaymentGateway宛のApprovalのみ）
+      const approvalLogs = await publicClient.getContractEvents({
+        address: jpycAddress,
+        abi: JPYC_ABI,
+        eventName: 'Approval',
+        args: {
+          spender: gatewayAddress, // PaymentGateway宛のApprovalのみ
+        },
+        fromBlock,
+        toBlock: latestBlock,
+      }).catch((err) => {
+        console.error('Approvalログ取得エラー:', err);
+        return [];
+      });
+
+      console.log('Approval Logs:', approvalLogs.length);
+
+      // AuthorizationUsedイベントを取得（EIP-3009）
+      const authUsedLogs = await publicClient.getContractEvents({
+        address: jpycAddress,
+        abi: JPYC_ABI,
+        eventName: 'AuthorizationUsed',
+        fromBlock,
+        toBlock: latestBlock,
+      }).catch((err) => {
+        console.error('AuthorizationUsedログ取得エラー:', err);
+        return [];
+      });
+
+      console.log('AuthorizationUsed Logs:', authUsedLogs.length);
 
       // ログを統合（重複排除）
       const allLogs: TransactionLog[] = [];
@@ -139,8 +184,18 @@ export default function AdminTab() {
         //   continue;
         // }
 
+        console.log('Processing Transfer log:', {
+          blockNumber: log.blockNumber.toString(),
+          transactionHash: log.transactionHash,
+          from: (log as any).args?.from,
+          to: (log as any).args?.to,
+          amount: (log as any).args?.value?.toString()
+        });
+
         try {
           const block = await publicClient.getBlock({ blockNumber: log.blockNumber });
+          console.log('Block fetched successfully:', block.number.toString());
+          
           const blockTime = new Date(Number(block.timestamp) * 1000).toLocaleString('ja-JP', {
             year: 'numeric',
             month: '2-digit',
@@ -150,7 +205,7 @@ export default function AdminTab() {
             second: '2-digit'
           });
 
-          allLogs.push({
+          const transferLog = {
             type: 'Transfer' as const,
             blockNumber: log.blockNumber,
             transactionHash: log.transactionHash,
@@ -158,22 +213,88 @@ export default function AdminTab() {
             to: (log as any).args?.to,
             amount: (log as any).args?.value,
             blockTime,
-          });
+          };
+          
+          console.log('Adding Transfer log to allLogs:', transferLog);
+          allLogs.push(transferLog);
         } catch (err) {
           console.error('Transferブロック情報取得エラー:', err);
+          console.error('Error for log:', log);
+        }
+      }
+
+      // Approvalログを処理
+      for (const log of approvalLogs) {
+        try {
+          const block = await publicClient.getBlock({ blockNumber: log.blockNumber });
+          const blockTime = new Date(Number(block.timestamp) * 1000).toLocaleString('ja-JP', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          });
+
+          allLogs.push({
+            type: 'Approval' as const,
+            blockNumber: log.blockNumber,
+            transactionHash: log.transactionHash,
+            from: (log as any).args?.owner,
+            to: gatewayAddress,
+            amount: (log as any).args?.value,
+            spender: (log as any).args?.spender,
+            blockTime,
+          });
+        } catch (err) {
+          console.error('Approvalブロック情報取得エラー:', err);
+        }
+      }
+
+      // AuthorizationUsedログを処理
+      for (const log of authUsedLogs) {
+        try {
+          const block = await publicClient.getBlock({ blockNumber: log.blockNumber });
+          const blockTime = new Date(Number(block.timestamp) * 1000).toLocaleString('ja-JP', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          });
+
+          allLogs.push({
+            type: 'AuthorizationUsed' as const,
+            blockNumber: log.blockNumber,
+            transactionHash: log.transactionHash,
+            from: (log as any).args?.authorizer,
+            to: gatewayAddress, // AuthorizationUsedは通常Gateway宛と仮定
+            amount: BigInt(0), // AuthorizationUsedイベント自体には金額情報がない
+            nonce: (log as any).args?.nonce,
+            blockTime,
+          });
+        } catch (err) {
+          console.error('AuthorizationUsedブロック情報取得エラー:', err);
         }
       }
 
       console.log('Total Logs:', allLogs.length);
+      console.log('All Logs before sort:', allLogs);
 
       // ブロック番号でソート（新しい順）
       allLogs.sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber));
 
-      // 合計金額を計算
-      const total = allLogs.reduce((sum, log) => sum + log.amount, BigInt(0));
+      // 合計金額を計算（実際にトークンを受信した操作のみ）
+      const total = allLogs
+        .filter(log => log.type === 'Transfer' || log.type === 'OrderPaid')
+        .reduce((sum, log) => sum + log.amount, BigInt(0));
       setTotalReceived(total);
 
-      setLogs(allLogs.slice(0, 50)); // 最新50件
+      const finalLogs = allLogs.slice(0, 50); // 最新50件
+      console.log('Final logs to display:', finalLogs);
+      setLogs(finalLogs);
+      console.log('Logs state set, current logs.length:', finalLogs.length);
 
     } catch (err: any) {
       console.error("ログ取得エラー:", err);
@@ -274,13 +395,10 @@ export default function AdminTab() {
               <p className="text-3xl font-bold">{logs.filter(log => log.type === 'OrderPaid').length}</p>
               <p className="text-sm text-purple-100">Orders</p>
             </div>
-            <div className="w-12 h-12 bg-purple-400 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
-              </svg>
-            </div>
           </div>
         </div>
+
+
       </div>
 
       {/* Merchant情報 */}
@@ -340,6 +458,7 @@ export default function AdminTab() {
           </div>
         ) : (
           <div className="space-y-4">
+            {console.log('Rendering logs, current logs:', logs)}
             {logs.map((log, index) => (
               <div
                 key={`${log.transactionHash}-${index}`}
@@ -351,15 +470,27 @@ export default function AdminTab() {
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                       log.type === 'Transfer' 
                         ? 'bg-blue-100 text-blue-600' 
-                        : 'bg-green-100 text-green-600'
+                        : log.type === 'OrderPaid'
+                        ? 'bg-green-100 text-green-600'
+                        : log.type === 'Approval'
+                        ? 'bg-yellow-100 text-yellow-600'
+                        : 'bg-purple-100 text-purple-600'
                     }`}>
                       {log.type === 'Transfer' ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
-                      ) : (
+                      ) : log.type === 'OrderPaid' ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                        </svg>
+                      ) : log.type === 'Approval' ? (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                         </svg>
                       )}
                     </div>
@@ -370,7 +501,11 @@ export default function AdminTab() {
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                           log.type === 'Transfer' 
                             ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-green-100 text-green-800'
+                            : log.type === 'OrderPaid'
+                            ? 'bg-green-100 text-green-800'
+                            : log.type === 'Approval'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-purple-100 text-purple-800'
                         }`}>
                           {log.type}
                         </span>
@@ -395,14 +530,39 @@ export default function AdminTab() {
                           </span>
                         </div>
 
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium text-gray-600">Amount:</span>
-                          <span className={`text-lg font-bold ${
-                            log.type === 'Transfer' ? 'text-blue-600' : 'text-green-600'
-                          }`}>
-                            {formatJPYC(log.amount)} JPYC
-                          </span>
-                        </div>
+                        {/* 金額表示 */}
+                        {log.type !== 'AuthorizationUsed' && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-600">Amount:</span>
+                            <span className={`text-lg font-bold ${
+                              log.type === 'Transfer' ? 'text-blue-600' : 
+                              log.type === 'OrderPaid' ? 'text-green-600' :
+                              'text-yellow-600'
+                            }`}>
+                              {formatJPYC(log.amount)} JPYC
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Approval固有の情報 */}
+                        {log.type === 'Approval' && log.spender && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-600">Spender:</span>
+                            <span className="font-mono text-sm bg-yellow-50 border border-yellow-200 px-3 py-1 rounded text-yellow-800 font-semibold">
+                              {formatAddress(log.spender)}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* AuthorizationUsed固有の情報 */}
+                        {log.type === 'AuthorizationUsed' && log.nonce && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-600">Nonce:</span>
+                            <span className="font-mono text-sm bg-purple-50 border border-purple-200 px-3 py-1 rounded text-purple-800 font-semibold">
+                              {log.nonce.slice(0, 10)}...
+                            </span>
+                          </div>
+                        )}
 
                         {log.type === 'OrderPaid' && log.orderId && (
                           <div className="space-y-2">

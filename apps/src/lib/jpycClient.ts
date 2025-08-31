@@ -6,4 +6,8 @@ export * from './sdk';
 // コア機能（Payment Gateway等）
 export * from './core/config';
 export * from './core/payment';
-export * from './core/utils'; 
+export * from './core/utils';
+
+// アプリ固有のユーティリティ機能
+export * from './utils/formatJPYC';
+export * from './utils/parseJPYC'; 
