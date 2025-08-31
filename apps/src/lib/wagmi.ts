@@ -15,12 +15,12 @@ const anvilLocal: Chain = {
     default: {
       http: [
         // 環境変数を最優先、Codespace環境ではポート転送URLまたはプロキシを使用
-        process.env.NEXT_PUBLIC_RPC_URL || '/api/anvil-proxy',
+        '/api/anvil-proxy',
       ],
     },
     public: {
       http: [
-        process.env.NEXT_PUBLIC_RPC_URL || '/api/anvil-proxy',
+        '/api/anvil-proxy',
       ],
     },
   },
