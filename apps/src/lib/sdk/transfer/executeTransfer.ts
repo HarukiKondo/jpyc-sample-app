@@ -22,5 +22,6 @@ export async function executeTransfer(
     args: [to, value],
   });
 
+  // return hash;
   return hash;
 } 

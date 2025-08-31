@@ -19,8 +19,23 @@ contract MockJPYC {
     bytes32 public constant PERMIT_TYPEHASH = 
         keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
     
+    // EIP-3009 TypeHashes
+    bytes32 public constant TRANSFER_WITH_AUTHORIZATION_TYPEHASH = 
+        keccak256("TransferWithAuthorization(address from,address to,uint256 value,uint256 validAfter,uint256 validBefore,bytes32 nonce)");
+    bytes32 public constant RECEIVE_WITH_AUTHORIZATION_TYPEHASH = 
+        keccak256("ReceiveWithAuthorization(address from,address to,uint256 value,uint256 validAfter,uint256 validBefore,bytes32 nonce)");
+    bytes32 public constant CANCEL_AUTHORIZATION_TYPEHASH = 
+        keccak256("CancelAuthorization(address authorizer,bytes32 nonce)");
+    
+    // EIP-3009 Nonce tracking
+    mapping(address => mapping(bytes32 => bool)) public authorizationState;
+    
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
+    
+    // EIP-3009 Events
+    event AuthorizationUsed(address indexed authorizer, bytes32 indexed nonce);
+    event AuthorizationCanceled(address indexed authorizer, bytes32 indexed nonce);
     
     constructor() {
         // 初期供給量 1,000,000 JPYC
@@ -101,6 +116,106 @@ contract MockJPYC {
         emit Transfer(address(0), to, amount);
     }
     
+    // EIP-3009: transferWithAuthorization
+    function transferWithAuthorization(
+        address from,
+        address to,
+        uint256 value,
+        uint256 validAfter,
+        uint256 validBefore,
+        bytes32 nonce,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external {
+        require(block.timestamp > validAfter, "Authorization not yet valid");
+        require(block.timestamp < validBefore, "Authorization expired");
+        require(!authorizationState[from][nonce], "Authorization already used");
+        
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_SEPARATOR,
+                keccak256(abi.encode(TRANSFER_WITH_AUTHORIZATION_TYPEHASH, from, to, value, validAfter, validBefore, nonce))
+            )
+        );
+        
+        address recoveredAddress = ecrecover(digest, v, r, s);
+        require(recoveredAddress != address(0) && recoveredAddress == from, "Invalid signature");
+        
+        authorizationState[from][nonce] = true;
+        
+        require(balanceOf[from] >= value, "Insufficient balance");
+        balanceOf[from] -= value;
+        balanceOf[to] += value;
+        
+        emit Transfer(from, to, value);
+        emit AuthorizationUsed(from, nonce);
+    }
+    
+    // EIP-3009: receiveWithAuthorization  
+    function receiveWithAuthorization(
+        address from,
+        address to,
+        uint256 value,
+        uint256 validAfter,
+        uint256 validBefore,
+        bytes32 nonce,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external {
+        require(msg.sender == to, "Caller must be the payee"); // 重要：受信者のみが実行可能
+        require(block.timestamp > validAfter, "Authorization not yet valid");
+        require(block.timestamp < validBefore, "Authorization expired");
+        require(!authorizationState[from][nonce], "Authorization already used");
+        
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_SEPARATOR,
+                keccak256(abi.encode(RECEIVE_WITH_AUTHORIZATION_TYPEHASH, from, to, value, validAfter, validBefore, nonce))
+            )
+        );
+        
+        address recoveredAddress = ecrecover(digest, v, r, s);
+        require(recoveredAddress != address(0) && recoveredAddress == from, "Invalid signature");
+        
+        authorizationState[from][nonce] = true;
+        
+        require(balanceOf[from] >= value, "Insufficient balance");
+        balanceOf[from] -= value;
+        balanceOf[to] += value;
+        
+        emit Transfer(from, to, value);
+        emit AuthorizationUsed(from, nonce);
+    }
+    
+    // EIP-3009: cancelAuthorization
+    function cancelAuthorization(
+        address authorizer,
+        bytes32 nonce,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external {
+        require(!authorizationState[authorizer][nonce], "Authorization already used");
+        
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_SEPARATOR,
+                keccak256(abi.encode(CANCEL_AUTHORIZATION_TYPEHASH, authorizer, nonce))
+            )
+        );
+        
+        address recoveredAddress = ecrecover(digest, v, r, s);
+        require(recoveredAddress != address(0) && recoveredAddress == authorizer, "Invalid signature");
+        
+        authorizationState[authorizer][nonce] = true;
+        emit AuthorizationCanceled(authorizer, nonce);
+    }
+
     // テスト用：複数のアドレスに一度にトークンをミント
     function batchMint(address[] calldata addresses, uint256 amount) external {
         for (uint i = 0; i < addresses.length; i++) {
@@ -108,6 +223,13 @@ contract MockJPYC {
             totalSupply += amount;
             emit Transfer(address(0), addresses[i], amount);
         }
+    }
+    
+    // ERC165 interface support (optional - reduces RPC errors)
+    function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
+        return interfaceId == 0x01ffc9a7 || // ERC165
+               interfaceId == 0x80ac58cd || // ERC721 (false)
+               interfaceId == 0xd9b67a26;   // ERC1155 (false)
     }
 }
 

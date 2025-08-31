@@ -43,7 +43,7 @@ bash .devcontainer/setup.sh
 **ターミナル1（Anvil起動）**:
 ```bash
 cd contracts
-anvil --host 0.0.0.0 --port 8545 --gas-limit 30000000 --gas-price 0 --base-fee 0 --no-cors
+anvil --host 0.0.0.0 --port 8545 --gas-limit 30000000 --gas-price 0 --base-fee 0
 ```
 
 **ターミナル2（コントラクトデプロイ）**:
@@ -114,7 +114,7 @@ pnpm dev
 # Anvil再起動
 pkill anvil
 cd contracts
-anvil --host 0.0.0.0 --port 8545 --gas-limit 30000000 --gas-price 0 --base-fee 0 --no-cors
+anvil --host 0.0.0.0 --port 8545 --gas-limit 30000000 --gas-price 0 --base-fee 0
 ```
 
 #### 残高が表示されない場合

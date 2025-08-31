@@ -20,6 +20,11 @@ export { getDomainSeparator } from './permit/getDomainSeparator';
 export { createPermitSignature } from './permit/createPermitSignature';
 export { executeBroadcastPermit } from './permit/executeBroadcastPermit';
 
+// Authorization機能 (EIP-3009)
+export { executeTransferWithAuthorization, createTransferWithAuthorizationSignature, generateNonce, generateValidityWindow } from './authorization/transferWithAuthorization';
+export { executeReceiveWithAuthorization, createReceiveWithAuthorizationSignature } from './authorization/receiveWithAuthorization';
+export { executeCancelAuthorization, createCancelAuthorizationSignature } from './authorization/cancelAuthorization';
+
 // Utils機能
 export { formatJPYC } from './utils/formatJPYC';
 export { parseJPYC } from './utils/parseJPYC'; 

@@ -71,4 +71,45 @@ export async function executePermitAndPay(
   });
 
   return hash;
-} 
+}
+
+// EIP-3009: transferWithAuthorization経由でのPaymentGateway決済
+export async function executePaymentWithTransferAuth(
+  orderId: string,
+  amount: bigint,
+  metaHash: `0x${string}`,
+  from: `0x${string}`,
+  validAfter: bigint,
+  validBefore: bigint,
+  nonce: `0x${string}`,
+  signature: { v: number; r: `0x${string}`; s: `0x${string}` }
+) {
+  const walletClient = await getWalletClient(config);
+  if (!walletClient) throw new Error("Wallet client not found");
+
+  const orderIdBytes32 = orderIdToBytes32(orderId);
+
+  const hash = await walletClient.writeContract({
+    address: getGatewayAddress(),
+    abi: PaymentGateway,
+    functionName: "payWithTransferAuthorization",
+    args: [
+      orderIdBytes32,
+      amount,
+      metaHash,
+      from,
+      validAfter,
+      validBefore,
+      nonce,
+      signature.v,
+      signature.r,
+      signature.s
+    ],
+  });
+
+  return hash;
+}
+
+
+
+ 

@@ -14,7 +14,11 @@ import {
   executePayment,
   executePermitAndPay,
   createPermitSignature,
-  orderIdToBytes32
+  orderIdToBytes32,
+  executePaymentWithTransferAuth,
+  createTransferWithAuthorizationSignature,
+  generateNonce,
+  generateValidityWindow
 } from '@/lib/jpycClient';
 
 // 商品定義
@@ -32,6 +36,7 @@ type PurchaseState =
   | 'payPending'
   | 'permitPending'
   | 'permitAndPayPending'
+  | 'transferAuthPending'
   | 'success'
   | 'failed';
 
@@ -60,7 +65,17 @@ export default function PurchaseTab() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string>('');
-  const [currentAllowance, setCurrentAllowance] = useState<bigint>(0n);
+  const [currentAllowance, setCurrentAllowance] = useState<bigint>(BigInt(0));
+  
+  // Authorization関連
+  const [authSignature, setAuthSignature] = useState<{
+    v: number;
+    r: `0x${string}`;
+    s: `0x${string}`;
+    nonce: `0x${string}`;
+    validAfter: bigint;
+    validBefore: bigint;
+  } | null>(null);
 
   // アドレス取得
   const jpycAddress = getJPYCAddress();
@@ -199,7 +214,11 @@ export default function PurchaseTab() {
         metaHash,
         address,
         deadline,
-        permitData
+        {
+          v: Number(permitData.v),
+          r: permitData.r,
+          s: permitData.s
+        }
       );
 
       // 成功
@@ -223,12 +242,86 @@ export default function PurchaseTab() {
     }
   };
 
+  // Transfer Authorization決済
+  const handleTransferAuthPayment = async () => {
+    if (!address || !currentOrder) return;
+    
+    try {
+      setError('');
+      
+      const amount = parseJPYC(currentOrder.total.toString());
+      const metaHash = generateMetaHash(currentOrder.orderId, currentOrder.items);
+      const nonce = generateNonce();
+      const { validAfter, validBefore } = generateValidityWindow(600); // 10分有効
+
+      // Step 1: transferWithAuthorization署名作成（merchant宛）
+      const merchantAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Account #1
+      const signature = await createTransferWithAuthorizationSignature(
+        address,
+        merchantAddress as `0x${string}`,
+        amount,
+        validAfter,
+        validBefore,
+        nonce
+      );
+
+      setAuthSignature({
+        v: signature.v,
+        r: signature.r,
+        s: signature.s,
+        nonce,
+        validAfter,
+        validBefore
+      });
+
+      // Step 2: PaymentGateway経由で決済実行
+      setState('transferAuthPending');
+      const hash = await executePaymentWithTransferAuth(
+        currentOrder.orderId,
+        amount,
+        metaHash,
+        address,
+        validAfter,
+        validBefore,
+        nonce,
+        {
+          v: signature.v,
+          r: signature.r,
+          s: signature.s
+        }
+      );
+
+      // 成功
+      setCurrentOrder(prev => prev ? { ...prev, txHash: hash } : null);
+      setState('success');
+
+      // ローカルストレージに保存
+      const savedOrders = JSON.parse(localStorage.getItem('jpyc-orders') || '[]');
+      const orderWithHash = {
+        ...currentOrder,
+        orderIdHash: orderIdToBytes32(currentOrder.orderId),
+        txHash: hash,
+        status: 'completed',
+        paymentMethod: 'transferWithAuthorization'
+      };
+      savedOrders.push(orderWithHash);
+      localStorage.setItem('jpyc-orders', JSON.stringify(savedOrders));
+
+    } catch (error: any) {
+      setError(error.message || 'Transfer Authorization決済に失敗しました');
+      setState('failed');
+    }
+  };
+
+
+
   // リセット
   const resetPurchase = () => {
     setState('cartReview');
     setCart([]);
     setCurrentOrder(null);
     setError('');
+    setAuthSignature(null);
   };
 
   if (!isConnected) {
@@ -343,7 +436,7 @@ export default function PurchaseTab() {
             {/* 決済方法選択 */}
             <div className="space-y-4">
               <h4 className="text-lg font-bold text-gray-900">決済方法を選択</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <button
                   onClick={handleApproveAndPay}
                   className="p-6 bg-yellow-50 border border-yellow-200 rounded-xl hover:bg-yellow-100 transition-colors text-left"
@@ -373,6 +466,21 @@ export default function PurchaseTab() {
                     💡 MetaMaskが1回だけ立ち上がります
                   </div>
                 </button>
+
+                <button
+                  onClick={handleTransferAuthPayment}
+                  className="p-6 bg-purple-50 border border-purple-200 rounded-xl hover:bg-purple-100 transition-colors text-left"
+                >
+                  <div className="text-2xl mb-2">📤</div>
+                  <h5 className="font-bold text-purple-900">Transfer Auth</h5>
+                  <p className="text-sm text-purple-700 mt-1">
+                    EIP-3009による事前承認送金<br/>
+                    署名 → 決済実行
+                  </p>
+                  <div className="mt-3 text-xs text-purple-600">
+                    💡 transferWithAuthorization使用
+                  </div>
+                </button>
               </div>
             </div>
           </div>
@@ -382,6 +490,7 @@ export default function PurchaseTab() {
       case 'payPending':
       case 'permitPending':
       case 'permitAndPayPending':
+      case 'transferAuthPending':
         return (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -390,6 +499,7 @@ export default function PurchaseTab() {
               {state === 'payPending' && '💳 決済処理中...'}
               {state === 'permitPending' && '✍️ 署名作成中...'}
               {state === 'permitAndPayPending' && '🚀 Permit + Pay実行中...'}
+              {state === 'transferAuthPending' && '📤 Transfer Auth決済中...'}
             </h3>
             <p className="text-gray-600">
               MetaMaskで署名してください
