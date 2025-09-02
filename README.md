@@ -35,6 +35,24 @@ Codespacesが起動したら、**自動セットアップが実行される**は
 bash .devcontainer/setup.sh
 ```
 
+### 🔧 3. 開発環境起動
+- **Sepolia ネットワーク想定（ハンズオンではこちらを使用します）**
+
+ルートディレクトリで下記のコマンドを実行すると即座に挙動を確認できる
+
+```bash
+pnpm dev
+```
+`apps/src/lib/jpycClient.ts` が立ち上がり、完成系が立ち上がります。
+
+ハンズオンで自分でSDKを実装したい場合
+
+```bash
+pnpm dev:exercise
+```
+`apps/src/lib/jpycClientExercise.ts`が立ち上がり、`apps/src/lib/exercise`配下を実装しないとアプリが機能しません。
+
+
 ## 📱 アプリケーション機能
 
 ### 🔗 ウォレット接続
@@ -81,15 +99,6 @@ bash .devcontainer/setup.sh
 - **AuthorizationUsed イベント**: EIP-3009使用履歴
 - 注文詳細（商品名、数量）の表示
 - ブロック時刻・トランザクションハッシュ
-
-### 🔧 3. 開発環境起動
-- **Sepolia ネットワーク想定（ハンズオンではこちらを使用します）**
-
-ルートディレクトリで下記のコマンドを実行すると即座に挙動を確認できる
-
-```bash
-pnpm dev
-```
 
 ## 🏗️ プロジェクト構造
 
