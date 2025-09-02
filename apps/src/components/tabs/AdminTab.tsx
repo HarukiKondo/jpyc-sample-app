@@ -22,9 +22,10 @@ interface TransactionLog {
   nonce?: string;    // AuthorizationUsedイベント用
 }
 
-// Merchant Address - .env.localで NEXT_PUBLIC_MERCHANT_ADDRESS を設定可能
-const MERCHANT_ADDRESS = (process.env.NEXT_PUBLIC_MERCHANT_ADDRESS as `0x${string}`) || "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Account #1
-// const MERCHANT_ADDRESS = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
+// ローカルテストでは Account #1 を指定
+// const MERCHANT_ADDRESS = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Account #1
+// Sepoliaではこちらを使用
+const MERCHANT_ADDRESS = "0x47e98DA2D8FA38ea76bBDbD1d3E2725732cb3A88";
 
 export default function AdminTab() {
   const { isConnected } = useAccount();

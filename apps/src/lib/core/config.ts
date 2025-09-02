@@ -27,9 +27,9 @@ export function getGatewayAddress(): `0x${string}` {
       // Anvil Local
       return "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
     } else {
-      // テストネット
-      return "0x602337022d05d2cF3c2A0Cd2a6d7720A49a84b6F";
+      // Sepolia Testnet
+      return "0xf2Ef1A3a1093605a2f48CCD1F127EeFfb959683E";
     }
   }
-  return "0x602337022d05d2cF3c2A0Cd2a6d7720A49a84b6F"; // デフォルトはテストネット
+  return "0xf2Ef1A3a1093605a2f48CCD1F127EeFfb959683E"; // デフォルト
 } 

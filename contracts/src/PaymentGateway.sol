@@ -83,7 +83,7 @@ contract PaymentGateway is ReentrancyGuard {
     ) external nonReentrant {
         _consumeOrder(orderId);
         
-        // EIP-3009 transferWithAuthorization を実行（merchant宛で完結）
+        // EIP-3009 transferWithAuthorization を実行（merchant宛）
         jpycAuth.transferWithAuthorization(
             from,
             merchant, // 直接merchant宛（ガス効率が良い）
@@ -95,10 +95,7 @@ contract PaymentGateway is ReentrancyGuard {
         );
         
         emit OrderPaid(orderId, from, amount, metaHash);
-        emit AuthorizationPayment(orderId, from, amount, nonce, "transferWithAuthorization");
     }
-
-
 
     function _consumeOrder(bytes32 orderId) internal {
         require(orderId != bytes32(0), "empty id");

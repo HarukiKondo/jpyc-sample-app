@@ -255,7 +255,11 @@ export default function PurchaseTab() {
       const { validAfter, validBefore } = generateValidityWindow(600); // 10分有効
 
       // Step 1: transferWithAuthorization署名作成（merchant宛）
-      const merchantAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Account #1
+      // ローカルテストでは Account #1 を指定
+      // const merchantAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Account #1
+      // Sepoliaではこちらを使用
+      const merchantAddress = "0x47e98DA2D8FA38ea76bBDbD1d3E2725732cb3A88"; // Account #1
+
       const signature = await createTransferWithAuthorizationSignature(
         address,
         merchantAddress as `0x${string}`,
