@@ -5,6 +5,7 @@ import { useAccount, useChainId } from 'wagmi';
 import { getPublicClient } from '@wagmi/core';
 import { config } from '@/lib/wagmi';
 import { getJPYCAddress, getGatewayAddress, formatJPYC } from '@/lib/jpycClient';
+import { getMerchantAddress } from '@/lib/core/config';
 import JPYC_ABI from '@/abi/JPYC.json';
 import PaymentGateway from '@/abi/PaymentGateway.json';
 
@@ -22,10 +23,8 @@ interface TransactionLog {
   nonce?: string;    // AuthorizationUsedイベント用
 }
 
-// ローカルテストでは Account #1 を指定
-// const MERCHANT_ADDRESS = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Account #1
-// Sepoliaではこちらを使用
-const MERCHANT_ADDRESS = "0x47e98DA2D8FA38ea76bBDbD1d3E2725732cb3A88";
+// Merchantアドレスを動的に取得
+const MERCHANT_ADDRESS = getMerchantAddress();
 
 export default function AdminTab() {
   const { isConnected } = useAccount();

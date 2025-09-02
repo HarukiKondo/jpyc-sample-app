@@ -20,6 +20,7 @@ import {
   generateNonce,
   generateValidityWindow
 } from '@/lib/jpycClient';
+import { getMerchantAddress } from '@/lib/core/config';
 
 // 商品定義
 const PRODUCTS = [
@@ -255,10 +256,7 @@ export default function PurchaseTab() {
       const { validAfter, validBefore } = generateValidityWindow(600); // 10分有効
 
       // Step 1: transferWithAuthorization署名作成（merchant宛）
-      // ローカルテストでは Account #1 を指定
-      // const merchantAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Account #1
-      // Sepoliaではこちらを使用
-      const merchantAddress = "0x47e98DA2D8FA38ea76bBDbD1d3E2725732cb3A88"; // Account #1
+      const merchantAddress = getMerchantAddress();
 
       const signature = await createTransferWithAuthorizationSignature(
         address,
