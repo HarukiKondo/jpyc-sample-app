@@ -6,8 +6,8 @@ import {PaymentGateway} from "../src/PaymentGateway.sol";
 
 contract DeploySepolia is Script {
     function run() external {
-        // Sepolia JPYC and Merchant addresses
-        address jpycAddress = 0xE7C3D8C9a439feDe00D2600032D5dB0Be71C3c29;
+        // Sepolia JPYC and Merchant addresses（JPYC v2）
+        address jpycAddress = 0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB;
         address merchantAddress = 0x47e98DA2D8FA38ea76bBDbD1d3E2725732cb3A88;
         
         console.log("=== SEPOLIA DEPLOYMENT ===");
@@ -29,7 +29,7 @@ contract DeploySepolia is Script {
         
         console.log("=== DEPLOYMENT COMPLETE ===");
         console.log("Add these to your .env.local:");
-        console.log("NEXT_PUBLIC_JPYC=0xE7C3D8C9a439feDe00D2600032D5dB0Be71C3c29");
+        console.log("NEXT_PUBLIC_JPYC=0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB");
         console.log("NEXT_PUBLIC_GATEWAY=", address(gateway));
         console.log("NEXT_PUBLIC_MERCHANT_ADDRESS=0x47e98DA2D8FA38ea76bBDbD1d3E2725732cb3A88");
         console.log("NEXT_PUBLIC_CHAIN_ID=11155111");
