@@ -1,28 +1,70 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi';
-import { parseUnits, formatUnits, isAddress } from 'viem';
-import { getJPYCAddress, getGatewayAddress, getJPYCAllowance, formatJPYC, parseJPYC, executeApprove } from '@/lib/jpycClient';
-import JPYC_ABI from '@/abi/JPYC.json';
+import { useState } from 'react';
+import { useAccount, useChainId } from 'wagmi';
+import { isAddress } from 'viem';
+// TODO: React SDKのフックをインポートしてください
+// import { useApprove, useAllowance } from '@jpyc/sdk-react';
+import { getGatewayAddress } from '@/lib/jpycClient';
+
+/**
+ * 🎓 学習目標: React SDKのuseApproveとuseAllowanceフックを実装
+ * 
+ * 📋 実装手順:
+ * 1. React SDKフックをインポート
+ * 2. useApprove()フックを呼び出し
+ * 3. useAllowance()フックでPayment Gateway許可額を取得
+ * 4. handleApprove関数でapprove()を実行
+ * 
+ * 🎯 完成版: apps/src/components/tabs/react-sdk/ApproveTab.tsx を参考にしてください
+ */
 
 export default function ApproveTab() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const { writeContract, data: hash, error, isPending } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
 
   // State
   const [amount, setAmount] = useState<string>('');
-  const [currentAllowance, setCurrentAllowance] = useState<bigint>(BigInt(0));
-  const [loadingAllowance, setLoadingAllowance] = useState(false);
-  const [approveError, setApproveError] = useState<string>('');
 
   // アドレス取得
-  const jpycAddress = getJPYCAddress();
   const gatewayAddress = getGatewayAddress();
+
+  // TODO: React SDKフックを使用してください
+  // const { 
+  //   approve, 
+  //   isReady, 
+  //   isLoading, 
+  //   isSuccess, 
+  //   error, 
+  //   hash, 
+  //   reset 
+  // } = useApprove();
+
+  // TODO: Allowance取得（React SDKフック）
+  // const { 
+  //   data: currentAllowanceStr, 
+  //   isPending: loadingAllowance, 
+  //   error: allowanceError 
+  // } = useAllowance({
+  //   owner: (address || '0x0000000000000000000000000000000000000000') as `0x${string}`,
+  //   spender: gatewayAddress as `0x${string}`,
+  //   skip: !address || !isConnected
+  // });
+
+  // 仮の状態（練習用）
+  const approve = null;
+  const isReady = false;
+  const isLoading = false;
+  const isSuccess = false;
+  const error = null;
+  const hash = null;
+  const reset = () => {};
+  const currentAllowanceStr = '0';
+  const loadingAllowance = false;
+  const allowanceError = null;
+
+  // React SDKは文字列で返すため、数値に変換
+  const currentAllowance = parseFloat(currentAllowanceStr || '0');
 
   // Allowance取得
   const fetchAllowance = async () => {
@@ -281,6 +323,78 @@ export default function ApproveTab() {
               <div className="flex items-center">
                 <span className="w-6 h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xs font-bold mr-3">3</span>
                 Permitタブで署名学習
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 学習ガイドパネル */}
+        <div className="bg-orange-50 border border-orange-200 rounded-2xl shadow-lg p-6">
+          <h4 className="text-lg font-semibold text-orange-900 mb-4">📚 Approve実装ガイド</h4>
+          
+          <div className="space-y-4">
+            <div className="flex items-start">
+              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3 mt-0.5">
+                <span className="text-orange-600 font-bold text-sm">1</span>
+              </div>
+              <div>
+                <h5 className="font-medium text-gray-900 mb-1">フックをインポート</h5>
+                <div className="mt-2 p-2 bg-white rounded text-xs font-mono border">
+                  import &#123; useApprove, useAllowance &#125; from '@jpyc/sdk-react';
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3 mt-0.5">
+                <span className="text-orange-600 font-bold text-sm">2</span>
+              </div>
+              <div>
+                <h5 className="font-medium text-gray-900 mb-1">useApproveフックを使用</h5>
+                <div className="mt-2 p-2 bg-white rounded text-xs font-mono border">
+                  const &#123; approve, isReady, isLoading, isSuccess, error, hash, reset &#125; = useApprove();
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3 mt-0.5">
+                <span className="text-orange-600 font-bold text-sm">3</span>
+              </div>
+              <div>
+                <h5 className="font-medium text-gray-900 mb-1">approve実行</h5>
+                <div className="mt-2 p-2 bg-white rounded text-xs font-mono border">
+                  await approve(&#123;<br/>
+                  &nbsp;&nbsp;spender: gatewayAddress as `0x$&#123;string&#125;`,<br/>
+                  &nbsp;&nbsp;value: amountNum // 数値をそのまま渡す<br/>
+                  &#125;);
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 p-4 bg-white border border-orange-200 rounded-lg">
+            <h5 className="font-medium text-orange-900 mb-2">実装チェックリスト</h5>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span>✓ React SDKフックインポート:</span>
+                <span className="text-red-600">未実装</span>
+              </div>
+              <div className="flex justify-between">
+                <span>✓ useApprove()呼び出し:</span>
+                <span className="text-red-600">未実装</span>
+              </div>
+              <div className="flex justify-between">
+                <span>✓ useAllowance()呼び出し:</span>
+                <span className="text-red-600">未実装</span>
+              </div>
+              <div className="flex justify-between">
+                <span>✓ handleApprove実装:</span>
+                <span className="text-red-600">未実装</span>
+              </div>
+              <div className="flex justify-between">
+                <span>✓ 状態管理統合:</span>
+                <span className="text-red-600">未実装</span>
               </div>
             </div>
           </div>

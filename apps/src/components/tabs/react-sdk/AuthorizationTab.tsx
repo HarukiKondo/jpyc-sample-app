@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { useAccount } from "wagmi";
 import { 
-  executeTransferWithAuthorization, 
+  useTransferWithAuthorization, 
+  useReceiveWithAuthorization,
+  useCancelAuthorization
+} from '@jpyc/sdk-react';
+import { 
   createTransferWithAuthorizationSignature,
-  executeReceiveWithAuthorization, 
   createReceiveWithAuthorizationSignature,
-  executeCancelAuthorization, 
   createCancelAuthorizationSignature,
   generateNonce,
   generateValidityWindow,
@@ -34,14 +36,47 @@ export default function AuthorizationTab() {
   const [amount, setAmount] = useState("");
   const [durationMinutes, setDurationMinutes] = useState("60");
   const [isLoadingSignature, setIsLoadingSignature] = useState(false);
-  const [isLoadingExecute, setIsLoadingExecute] = useState(false);
-  const [error, setError] = useState("");
-  const [txHash, setTxHash] = useState("");
+
+  // React SDKフックを使用
+  const { 
+    transferWithAuthorization, 
+    isReady: isTransferReady, 
+    isLoading: isTransferLoading, 
+    isSuccess: isTransferSuccess, 
+    error: transferError, 
+    hash: transferHash, 
+    reset: resetTransfer 
+  } = useTransferWithAuthorization();
+
+  const { 
+    receiveWithAuthorization, 
+    isReady: isReceiveReady, 
+    isLoading: isReceiveLoading, 
+    isSuccess: isReceiveSuccess, 
+    error: receiveError, 
+    hash: receiveHash, 
+    reset: resetReceive 
+  } = useReceiveWithAuthorization();
+
+  const { 
+    cancelAuthorization, 
+    isReady: isCancelReady, 
+    isLoading: isCancelLoading, 
+    isSuccess: isCancelSuccess, 
+    error: cancelError, 
+    hash: cancelHash, 
+    reset: resetCancel 
+  } = useCancelAuthorization();
+
+  // 統合された状態
+  const isLoadingExecute = isTransferLoading || isReceiveLoading || isCancelLoading;
+  const error = transferError?.message || receiveError?.message || cancelError?.message || "";
+  const txHash = transferHash || receiveHash || cancelHash || "";
 
   // Transfer/Receive specific states
   const [toAddress, setToAddress] = useState("");
   const [signature, setSignature] = useState<AuthSignature | null>(null);
-  const [originalFromAddress, setOriginalFromAddress] = useState<string>(""); // 署名時の送金者アドレスを保持
+  const [originalFromAddress, setOriginalFromAddress] = useState<string>(""); // 署名時の送信者アドレスを保持
 
   // Cancel specific states
   const [cancelNonce, setCancelNonce] = useState("");
@@ -57,7 +92,7 @@ export default function AuthorizationTab() {
     {
       id: 'transfer' as AuthMode,
       name: 'Transfer Auth',
-      description: '署名による事前承認送金',
+      description: '署名による事前承認送信',
       icon: '📤',
       color: 'purple'
     },
@@ -80,27 +115,28 @@ export default function AuthorizationTab() {
   const handleReset = () => {
     setSignature(null);
     setCancelSignature(null);
-    setTxHash("");
-    setError("");
     setAmount("");
     setToAddress("");
     setCancelNonce("");
     setAuthorizerAddress("");
+    // React SDKの状態もリセット
+    resetTransfer();
+    resetReceive();
+    resetCancel();
   };
 
   const handleCreateSignature = async () => {
     if (!address) {
-      setError("ウォレットが接続されていません");
+              alert("ウォレットが接続されていません");
       return;
     }
 
     try {
       setIsLoadingSignature(true);
-      setError("");
 
       if (activeMode === 'transfer') {
         if (!toAddress || !amount) {
-          setError("送金先アドレスと金額を入力してください");
+          alert("送信先アドレスと金額を入力してください");
           return;
         }
 
@@ -129,7 +165,7 @@ export default function AuthorizationTab() {
 
       } else if (activeMode === 'receive') {
         if (!toAddress || !amount) {
-          setError("受取先アドレスと金額を入力してください");
+          alert("受取先アドレスと金額を入力してください");
           return;
         }
 
@@ -157,12 +193,12 @@ export default function AuthorizationTab() {
           hash: sig.hash
         });
         
-        // 署名作成時の送金者アドレスを保存
+        // 署名作成時の送信者アドレスを保存
         setOriginalFromAddress(address);
 
       } else if (activeMode === 'cancel') {
         if (!authorizerAddress || !cancelNonce) {
-          setError("認証者アドレスとnonceを入力してください");
+          alert("認証者アドレスとnonceを入力してください");
           return;
         }
 
@@ -181,7 +217,7 @@ export default function AuthorizationTab() {
 
     } catch (err) {
       console.error("署名作成エラー:", err);
-      setError(`署名作成に失敗しました: ${err instanceof Error ? err.message : "Unknown error"}`);
+      alert(`署名作成に失敗しました: ${err instanceof Error ? err.message : "Unknown error"}`);
     } finally {
       setIsLoadingSignature(false);
     }
@@ -189,65 +225,52 @@ export default function AuthorizationTab() {
 
   const handleExecute = async () => {
     if (!address) {
-      setError("ウォレットが接続されていません");
+              alert("ウォレットが接続されていません");
       return;
     }
 
     try {
-      setIsLoadingExecute(true);
-      setError("");
+      if (activeMode === 'transfer' && signature && transferWithAuthorization) {
+        await transferWithAuthorization({
+          from: address,
+          to: toAddress as `0x${string}`,
+          value: parseFloat(amount), // React SDKは数値をそのまま渡す
+          validAfter: signature.validAfter as any, // Uint256型に変換
+          validBefore: signature.validBefore as any, // Uint256型に変換
+          nonce: signature.nonce as any, // Bytes32型に変換
+          v: signature.v as any, // Uint8型に変換
+          r: signature.r as any, // Bytes32型に変換
+          s: signature.s as any  // Bytes32型に変換
+        });
 
-      let hash: `0x${string}`;
+      } else if (activeMode === 'receive' && signature && receiveWithAuthorization) {
+        await receiveWithAuthorization({
+          from: originalFromAddress as `0x${string}`, // 署名時の送信者アドレスを使用
+          to: address,
+          value: parseFloat(amount), // React SDKは数値をそのまま渡す
+          validAfter: signature.validAfter as any, // Uint256型に変換
+          validBefore: signature.validBefore as any, // Uint256型に変換
+          nonce: signature.nonce as any, // Bytes32型に変換
+          v: signature.v as any, // Uint8型に変換
+          r: signature.r as any, // Bytes32型に変換
+          s: signature.s as any  // Bytes32型に変換
+        });
 
-      if (activeMode === 'transfer' && signature) {
-        hash = await executeTransferWithAuthorization(
-          address,
-          toAddress as `0x${string}`,
-          parseJPYC(amount),
-          signature.validAfter,
-          signature.validBefore,
-          signature.nonce,
-          {
-            v: signature.v,
-            r: signature.r,
-            s: signature.s
-          }
-        );
-
-      } else if (activeMode === 'receive' && signature) {
-
-        hash = await executeReceiveWithAuthorization(
-          originalFromAddress as `0x${string}`, // 署名時の送金者アドレスを使用
-          toAddress as `0x${string}`,
-          parseJPYC(amount),
-          signature.validAfter,
-          signature.validBefore,
-          signature.nonce,
-          {
-            v: signature.v,
-            r: signature.r,
-            s: signature.s
-          }
-        );
-
-      } else if (activeMode === 'cancel' && cancelSignature) {
-        hash = await executeCancelAuthorization(
-          authorizerAddress as `0x${string}`,
-          cancelNonce as `0x${string}`,
-          {
-            v: cancelSignature.v,
-            r: cancelSignature.r,
-            s: cancelSignature.s
-          }
-        );
+      } else if (activeMode === 'cancel' && cancelSignature && cancelAuthorization) {
+        await cancelAuthorization({
+          authorizer: authorizerAddress as `0x${string}`,
+          nonce: cancelNonce as any, // Bytes32型に変換
+          v: cancelSignature.v as any, // Uint8型に変換
+          r: cancelSignature.r as any, // Bytes32型に変換
+          s: cancelSignature.s as any  // Bytes32型に変換
+        });
 
       } else {
-        setError("署名を先に作成してください");
+        alert("署名を先に作成してください、または機能の準備ができていません");
         return;
       }
 
-      setTxHash(hash);
-      console.log(`${activeMode} executed:`, hash);
+      console.log(`${activeMode} executed with React SDK`);
 
       // 成功後、フォームをリセット
       setSignature(null);
@@ -255,9 +278,7 @@ export default function AuthorizationTab() {
       
     } catch (err) {
       console.error(`${activeMode}実行エラー:`, err);
-      setError(`実行に失敗しました: ${err instanceof Error ? err.message : "Unknown error"}`);
-    } finally {
-      setIsLoadingExecute(false);
+      // エラーはReact SDKフックで管理される
     }
   };
 
@@ -347,7 +368,7 @@ export default function AuthorizationTab() {
           {activeMode === 'transfer' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">送金先アドレス</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">送信先アドレス</label>
                 <input
                   type="text"
                   value={toAddress}
@@ -357,7 +378,7 @@ export default function AuthorizationTab() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">送金額 (JPYC)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">送信額 (JPYC)</label>
                 <input
                   type="number"
                   value={amount}
@@ -382,7 +403,7 @@ export default function AuthorizationTab() {
                   <div className="text-sm">
                     <p className="text-yellow-800 font-medium mb-1">🔄 アカウント切り替えテスト手順</p>
                     <ol className="text-yellow-700 list-decimal list-inside space-y-1">
-                      <li>下記フォームで署名を作成（送金者→受信者）</li>
+                      <li>下記フォームで署名を作成（送信者→受信者）</li>
                       <li>MetaMaskで<strong>受信者アカウント</strong>に切り替え</li>
                       <li>「転送を実行」ボタンをクリック ✅（成功するはず）</li>
                       <li>MetaMaskで<strong>別のアカウント</strong>に切り替え</li>
@@ -395,7 +416,7 @@ export default function AuthorizationTab() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    送金者アドレス（現在のMetaMaskアドレス）
+                    送信者アドレス（現在のMetaMaskアドレス）
                     <span className="text-blue-600 text-xs ml-2">※署名作成者</span>
                   </label>
                   <input
@@ -417,7 +438,7 @@ export default function AuthorizationTab() {
                   <p className="text-xs text-gray-600 mt-1">転送実行時はこのアドレスでMetaMaskに接続する必要があります</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">送金額 (JPYC)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">送信額 (JPYC)</label>
                   <input
                     type="number"
                     value={amount}
@@ -544,7 +565,7 @@ export default function AuthorizationTab() {
           <div className="mt-4 flex space-x-4">
             <button
               onClick={handleExecute}
-              disabled={isLoadingExecute}
+              disabled={isLoadingExecute || (!isTransferReady && !isReceiveReady && !isCancelReady)}
               className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
               {isLoadingExecute ? "実行中..." : `${activeMode === 'cancel' ? 'キャンセル' : '転送'}を実行`}
@@ -561,9 +582,9 @@ export default function AuthorizationTab() {
       )}
 
       {/* 成功時の表示 */}
-      {txHash && (
+      {(isTransferSuccess || isReceiveSuccess || isCancelSuccess) && txHash && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-4">実行完了！</h3>
+          <h3 className="text-lg font-semibold text-blue-900 mb-4">React SDK実行完了！</h3>
           <div className="space-y-2 text-sm">
             <div>
               <span className="font-medium text-blue-800">トランザクションハッシュ:</span>
@@ -585,6 +606,78 @@ export default function AuthorizationTab() {
           </div>
         </div>
       )}
+
+      {/* React SDK状態パネル */}
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-lg p-6">
+        <h4 className="text-lg font-semibold text-gray-900 mb-4">React SDK状態管理</h4>
+        <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="space-y-2">
+            <h5 className="font-medium text-gray-700">Transfer</h5>
+            <div className="flex justify-between">
+              <span>isReady:</span>
+              <span className={isTransferReady ? "text-green-600" : "text-red-600"}>
+                {isTransferReady ? "✓" : "✗"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>isLoading:</span>
+              <span className={isTransferLoading ? "text-orange-600" : "text-gray-600"}>
+                {isTransferLoading ? "✓" : "✗"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>isSuccess:</span>
+              <span className={isTransferSuccess ? "text-green-600" : "text-gray-600"}>
+                {isTransferSuccess ? "✓" : "✗"}
+              </span>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <h5 className="font-medium text-gray-700">Receive</h5>
+            <div className="flex justify-between">
+              <span>isReady:</span>
+              <span className={isReceiveReady ? "text-green-600" : "text-red-600"}>
+                {isReceiveReady ? "✓" : "✗"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>isLoading:</span>
+              <span className={isReceiveLoading ? "text-orange-600" : "text-gray-600"}>
+                {isReceiveLoading ? "✓" : "✗"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>isSuccess:</span>
+              <span className={isReceiveSuccess ? "text-green-600" : "text-gray-600"}>
+                {isReceiveSuccess ? "✓" : "✗"}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h5 className="font-medium text-gray-700">Cancel</h5>
+            <div className="flex justify-between">
+              <span>isReady:</span>
+              <span className={isCancelReady ? "text-green-600" : "text-red-600"}>
+                {isCancelReady ? "✓" : "✗"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>isLoading:</span>
+              <span className={isCancelLoading ? "text-orange-600" : "text-gray-600"}>
+                {isCancelLoading ? "✓" : "✗"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>isSuccess:</span>
+              <span className={isCancelSuccess ? "text-green-600" : "text-gray-600"}>
+                {isCancelSuccess ? "✓" : "✗"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

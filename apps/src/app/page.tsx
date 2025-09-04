@@ -1,14 +1,46 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import WalletConnect from "@/components/WalletConnect";
-import BalanceTab from "@/components/tabs/BalanceTab";
-import TransferTab from "@/components/tabs/TransferTab";
-import ApproveTab from "@/components/tabs/ApproveTab";
-import PermitTab from "@/components/tabs/PermitTab";
-import PurchaseTab from "@/components/tabs/PurchaseTab";
-import AdminTab from "@/components/tabs/AdminTab";
-import AuthorizationTab from "@/components/tabs/AuthorizationTab";
+
+// 環境変数に基づいてコンポーネントを選択
+const mode = process.env.NEXT_PUBLIC_MODE || 'react-sdk';
+
+// ハンズオン対象タブ（exercise版あり）
+const BalanceTab = dynamic(() => 
+  mode === 'exercise' 
+    ? import("@/components/tabs/exercise/BalanceTab")
+    : import("@/components/tabs/react-sdk/BalanceTab")
+);
+
+const TransferTab = dynamic(() => 
+  mode === 'exercise' 
+    ? import("@/components/tabs/exercise/TransferTab")
+    : import("@/components/tabs/react-sdk/TransferTab")
+);
+
+const ApproveTab = dynamic(() => 
+  mode === 'exercise' 
+    ? import("@/components/tabs/exercise/ApproveTab")
+    : import("@/components/tabs/react-sdk/ApproveTab")
+);
+
+const PermitTab = dynamic(() => 
+  mode === 'exercise' 
+    ? import("@/components/tabs/exercise/PermitTab")
+    : import("@/components/tabs/react-sdk/PermitTab")
+);
+
+const AuthorizationTab = dynamic(() => 
+  mode === 'exercise' 
+    ? import("@/components/tabs/exercise/AuthorizationTab")
+    : import("@/components/tabs/react-sdk/AuthorizationTab")
+);
+
+// 完成版共通使用タブ（常にreact-sdk版）
+const PurchaseTab = dynamic(() => import("@/components/tabs/react-sdk/PurchaseTab"));
+const AdminTab = dynamic(() => import("@/components/tabs/react-sdk/AdminTab"));
 
 const tabs = [
   {
@@ -24,7 +56,7 @@ const tabs = [
   {
     id: 'Transfer',
     name: 'Transfer',
-    description: '送金',
+    description: '送信',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -131,8 +163,23 @@ export default function Home() {
                 <span className="text-white font-bold text-lg">J</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">JPYC Sample App</h1>
-                <p className="text-sm text-gray-600">学習用決済アプリケーション</p>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  JPYC Sample App
+                  <span className={`ml-3 text-xs px-2 py-1 rounded-full font-medium ${
+                    mode === 'react-sdk' ? 'bg-blue-100 text-blue-800' :
+                    mode === 'exercise' ? 'bg-orange-100 text-orange-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {mode === 'react-sdk' ? '⚛️ React SDK' :
+                     mode === 'exercise' ? '🎓 Exercise' :
+                     '🎯 Default'}
+                  </span>
+                </h1>
+                <p className="text-sm text-gray-600">
+                  {mode === 'react-sdk' ? 'React SDKフック版' :
+                   mode === 'exercise' ? '学習用練習版' :
+                   '完成版 (viem実装)'}
+                </p>
               </div>
             </div>
             <WalletConnect />

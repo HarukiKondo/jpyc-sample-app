@@ -1,5 +1,5 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { sepolia, polygonAmoy, avalancheFuji } from 'wagmi/chains';
+import { mainnet, sepolia, polygon, polygonAmoy, avalanche, avalancheFuji } from 'wagmi/chains';
 import { Chain } from 'viem';
 
 // Anvil用のカスタムlocalhostチェーンを定義
@@ -31,6 +31,6 @@ const anvilLocal: Chain = {
 export const config = getDefaultConfig({
   appName: 'JPYC Sample App',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'demo-project-id-for-development',
-  chains: [sepolia, polygonAmoy, avalancheFuji, anvilLocal],
+  chains: [mainnet, sepolia, polygon, polygonAmoy, avalanche, avalancheFuji, anvilLocal],
   ssr: true,
 }); 

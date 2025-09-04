@@ -1,0 +1,4 @@
+[submodule "external/jpyc-sdks"]
+	path = external/jpyc-sdks
+	url = https://github.com/jcam1/sdks.git
+	branch = add-react-package

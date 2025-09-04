@@ -10,11 +10,11 @@ export function getJPYCAddress(): `0x${string}` {
       // Anvil Local
       return "0x5FbDB2315678afecb367f032d93F642f64180aa3";
     } else {
-      // テストネット（Sepolia, Polygon Amoy, Avalanche Fuji等）
-      return "0xE7C3D8C9a439feDe00D2600032D5dB0Be71C3c29";
+      // テストネット（Sepolia）- JPYC v2
+      return "0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB";
     }
   }
-  return "0xE7C3D8C9a439feDe00D2600032D5dB0Be71C3c29"; // デフォルトはテストネット
+  return "0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB"; // デフォルト（JPYC v2）
 }
 
 // チェーンIDに応じてPaymentGatewayアドレスを取得
@@ -27,11 +27,11 @@ export function getGatewayAddress(): `0x${string}` {
       // Anvil Local
       return "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
     } else {
-      // Sepolia Testnet
-      return "0xf2Ef1A3a1093605a2f48CCD1F127EeFfb959683E";
+      // Sepolia Testnet（JPYC v2対応）
+      return "0x39bA2Fc02fE35a5655eb8200A659d5c7067e6D78";
     }
   }
-  return "0xf2Ef1A3a1093605a2f48CCD1F127EeFfb959683E"; // デフォルト
+  return "0x39bA2Fc02fE35a5655eb8200A659d5c7067e6D78"; // デフォルト（JPYC v2対応）
 }
 
 // チェーンIDに応じてMerchantアドレスを取得

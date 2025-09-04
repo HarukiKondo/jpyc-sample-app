@@ -1,63 +1,57 @@
 "use client";
 
-import { useAccount, useChainId } from 'wagmi';
-import { useEffect, useState } from 'react';
-import { getJPYCAddress, getJPYCBalance, getJPYCTotalSupply, formatJPYC } from '@/lib/jpycClient';
+import { useAccount } from 'wagmi';
+import { useBalanceOf, useTotalSupply } from '@jpyc/sdk-react';
 
 export default function BalanceTab() {
   const { address, isConnected } = useAccount();
-  const chainId = useChainId();
-  const [balance, setBalance] = useState<bigint>(BigInt(0));
-  const [totalSupply, setTotalSupply] = useState<bigint>(BigInt(0));
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string>('');
 
-  const fetchBalance = async () => {
-    if (!address) return;
-    
-    try {
-      setIsLoading(true);
-      setError('');
-      const [balanceResult, totalSupplyResult] = await Promise.all([
-        getJPYCBalance(address),
-        getJPYCTotalSupply()
-      ]);
-      setBalance(balanceResult);
-      setTotalSupply(totalSupplyResult);
-    } catch (err: any) {
-      setError(err.message || '残高の取得に失敗しました');
-      console.error('Balance fetch error:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // React SDKフックを使用（decimal変換は自動）
+  const { 
+    data: balance, 
+    isPending: isBalanceLoading, 
+    error: balanceError 
+  } = useBalanceOf({ 
+    account: (address || '0x0000000000000000000000000000000000000000') as `0x${string}`,
+    skip: !address || !isConnected
+  });
 
-  useEffect(() => {
-    if (isConnected && address) {
-      fetchBalance();
-    }
-  }, [isConnected, address, chainId]);
+  const { 
+    data: totalSupply, 
+    isPending: isTotalSupplyLoading, 
+    error: totalSupplyError 
+  } = useTotalSupply({
+    skip: !isConnected
+  });
 
-  const formattedBalance = formatJPYC(balance);
-  const formattedTotalSupply = formatJPYC(totalSupply);
+  // ローディング状態とエラー状態を統合
+  const isLoading = isBalanceLoading || isTotalSupplyLoading;
+  const error = balanceError || totalSupplyError;
+
+  // React SDKは文字列で返し、自動でdecimal変換済み
+  const formattedBalance = parseFloat(balance || '0');
+  const formattedTotalSupply = parseFloat(totalSupply || '0');
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">JPYC残高確認</h2>
-          <p className="text-gray-600 mt-2 text-lg">ウォレットのJPYC残高とTotal Supplyをリアルタイムで表示します</p>
+          <h2 className="text-3xl font-bold text-gray-900">JPYC残高確認 (React SDK)</h2>
+          <p className="text-gray-600 mt-2 text-lg">React SDKフックで自動更新される残高とTotal Supply</p>
         </div>
-        <button
-          onClick={fetchBalance}
-          disabled={!isConnected || isLoading}
-          className="inline-flex items-center px-6 py-3 border border-blue-300 text-base font-medium rounded-xl text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-        >
-          <svg className={`w-5 h-5 mr-2 ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          {isLoading ? "更新中..." : "残高を更新"}
-        </button>
+        <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+          <span>React SDK版</span>
+          {isLoading && (
+            <div className="flex items-center ml-4">
+              <svg className="animate-spin w-4 h-4 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              自動更新中...
+            </div>
+          )}
+        </div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -1,4 +1,5 @@
-import { getPublicClientInstance } from '../sdk/instance';
+import { getPublicClient } from '@wagmi/core';
+import { config } from '../wagmi';
 import { getJPYCAddress } from '../core/config';
 import JPYC_ABI from "@/abi/JPYC.json";
 
@@ -9,7 +10,8 @@ import JPYC_ABI from "@/abi/JPYC.json";
  * @returns Promise<bigint> - 現在のnonce値
  */
 export async function getPermitNonce(address: `0x${string}`): Promise<bigint> {
-  const publicClient = getPublicClientInstance();
+  const publicClient = getPublicClient(config);
+  if (!publicClient) throw new Error("Public client not found");
   
   const nonce = await publicClient.readContract({
     address: getJPYCAddress(),

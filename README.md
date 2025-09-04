@@ -23,8 +23,10 @@ Codespacesが起動したら、**自動セットアップが実行される**は
 
 ```bash
 # セットアップ内容（自動実行）:
+# - Gitサブモジュール初期化（JPYC React SDK）
 # - pnpm インストール
 # - Foundry インストール  
+# - JPYC React SDKビルド
 # - プロジェクト依存関係インストール
 # - .env.local テンプレート作成
 ```
@@ -40,17 +42,21 @@ bash .devcontainer/setup.sh
 
 ルートディレクトリで下記のコマンドを実行すると即座に挙動を確認できる
 
+### ⚛️ React SDK完成版
 ```bash
 pnpm dev
 ```
-`apps/src/lib/jpycClient.ts` が立ち上がり、完成系が立ち上がります。
+React SDKの完成版が動作します。全ての機能を体験できます。
 
-ハンズオンで自分でSDKを実装したい場合
-
+### 🎓 React SDK学習版（ハンズオン）
 ```bash
 pnpm dev:exercise
 ```
-`apps/src/lib/jpycClientExercise.ts`が立ち上がり、`apps/src/lib/exercise`配下を実装しないとアプリが機能しません。
+
+### ⚛️ React SDK版（新機能）
+```bash
+pnpm dev:react-sdk
+```
 
 
 ## 📱 アプリケーション機能
@@ -64,10 +70,10 @@ pnpm dev:exercise
 - 接続ウォレットのJPYC残高を表示
 - `ERC20.balanceOf()` の基本操作
 
-### 💸 Transfer（送金）
-- 指定アドレスへのJPYC送金
+### 💸 Transfer（送信）
+- 指定アドレスへのJPYC送信
 - `ERC20.transfer()` の体験
-- 注文IDとは紐付けない単純送金
+- 注文IDとは紐付けない単純送信
 
 ### ✅ Approve（承認設定）
 - PaymentGatewayへのJPYC使用許可
@@ -80,8 +86,8 @@ pnpm dev:exercise
 - 署名パラメータ（v, r, s）の可視化
 
 ### 🔐 Authorization（EIP-3009）
-- **transferWithAuthorization**: 送金者が署名、誰でも実行可能
-- **receiveWithAuthorization**: 送金者が署名、受取者のみ実行可能
+- **transferWithAuthorization**: 送信者が署名、誰でも実行可能
+- **receiveWithAuthorization**: 送信者が署名、受取者のみ実行可能
 - **cancelAuthorization**: 認証者が署名、誰でも実行可能
 
 ### 🛒 Purchase（商品購入）
@@ -93,7 +99,7 @@ pnpm dev:exercise
 - 注文ID自動生成・履歴保存
 
 ### 👨‍💼 Admin（管理画面）
-- **Transfer イベント**: 基本的なERC20送金履歴
+- **Transfer イベント**: 基本的なERC20送信履歴
 - **OrderPaid イベント**: ゲートウェイ経由決済履歴
 - **Approval イベント**: PaymentGateway宛の承認履歴
 - **AuthorizationUsed イベント**: EIP-3009使用履歴
@@ -122,7 +128,7 @@ jpyc-sample-app/
 │   │   │   │   ├── BalanceTab.tsx    # 残高確認
 │   │   │   │   ├── PermitTab.tsx     # Permit機能
 │   │   │   │   ├── PurchaseTab.tsx   # 商品購入
-│   │   │   │   └── TransferTab.tsx   # 送金機能
+│   │   │   │   └── TransferTab.tsx   # 送信機能
 │   │   │   ├── Providers.tsx
 │   │   │   └── WalletConnect.tsx
 │   │   ├── lib/                 # ライブラリ・ユーティリティ
@@ -135,7 +141,7 @@ jpyc-sample-app/
 │   │   │   │   ├── authorization/   # EIP-3009機能
 │   │   │   │   ├── balance/         # 残高取得
 │   │   │   │   ├── permit/          # Permit機能
-│   │   │   │   └── transfer/        # 送金機能
+│   │   │   │   └── transfer/        # 送信機能
 │   │   │   ├── exercise/       # 練習課題用（未実装）
 │   │   │   │   └── [同じ構造]
 │   │   │   ├── utils/          # 署名・フォーマット関数

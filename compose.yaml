@@ -8,11 +8,22 @@ services:
       - ./:/application
       - node_modules:/application/node_modules
       - apps_node_modules:/application/apps/node_modules
+      - jpyc_sdk_node_modules:/application/external/jpyc-sdks/packages/react/node_modules
     ports:
       - 3000:3000  # Next.jsフロントエンド
     depends_on:
       - anvil
     working_dir: /application
+    command: >
+      bash -c "
+        git submodule update --init --recursive &&
+        cd external/jpyc-sdks/packages/react &&
+        npm install && npm run build &&
+        cd ../../../.. &&
+        pnpm install &&
+        cd apps && pnpm install &&
+        tail -f /dev/null
+      "
 
   anvil:
     build:
@@ -24,4 +35,5 @@ services:
 
 volumes:
   node_modules:
-  apps_node_modules: 
+  apps_node_modules:
+  jpyc_sdk_node_modules: 

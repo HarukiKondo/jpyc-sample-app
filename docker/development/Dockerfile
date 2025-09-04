@@ -28,6 +28,7 @@ RUN npm install -g pnpm
 
 # git設定（Docker内での安全なgit操作）
 RUN git config --global --add safe.directory /application
+RUN git config --global --add safe.directory /application/external/jpyc-sdks
 
 # 不要なパッケージを削除してイメージサイズ削減
 RUN apt-get autoremove -y

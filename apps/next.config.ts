@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
       
       console.log(`🎯 Exercise Mode (webpack): ${exerciseMode}`);
       console.log(`📚 Alias: ${originalClientPath} → ${exerciseClientPath}`);
+    } else {
+      console.log(`⚛️ React SDK Mode: jpycClient.ts is being used!`);
     }
     
     return config;

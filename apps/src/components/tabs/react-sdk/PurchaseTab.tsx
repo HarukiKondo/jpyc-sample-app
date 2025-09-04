@@ -3,14 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 import { 
+  useApprove, 
+  useAllowance,
+  useTransferWithAuthorization
+} from '@jpyc/sdk-react';
+import { 
   getJPYCAddress, 
   getGatewayAddress, 
-  getJPYCAllowance, 
-  formatJPYC, 
-  parseJPYC,
   generateOrderId,
   generateMetaHash,
-  executeApprove,
   executePayment,
   executePermitAndPay,
   createPermitSignature,
@@ -37,6 +38,7 @@ type PurchaseState =
   | 'payPending'
   | 'permitPending'
   | 'permitAndPayPending'
+  | 'transferAuthSignatureReady'
   | 'transferAuthPending'
   | 'success'
   | 'failed';
@@ -65,8 +67,44 @@ export default function PurchaseTab() {
   const [state, setState] = useState<PurchaseState>('cartReview');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
-  const [error, setError] = useState<string>('');
-  const [currentAllowance, setCurrentAllowance] = useState<bigint>(BigInt(0));
+
+  // React SDKフックを使用
+  const { 
+    approve, 
+    isReady: isApproveReady, 
+    isLoading: isApproveLoading, 
+    isSuccess: isApproveSuccess, 
+    error: approveError, 
+    hash: approveHash, 
+    reset: resetApprove 
+  } = useApprove();
+
+  const { 
+    transferWithAuthorization, 
+    isReady: isTransferAuthReady, 
+    isLoading: isTransferAuthLoading, 
+    isSuccess: isTransferAuthSuccess, 
+    error: transferAuthError, 
+    hash: transferAuthHash, 
+    reset: resetTransferAuth 
+  } = useTransferWithAuthorization();
+
+  // アドレス取得
+  const gatewayAddress = getGatewayAddress();
+
+  // Allowance取得（React SDKフック）
+  const { 
+    data: currentAllowanceStr, 
+    isPending: loadingAllowance, 
+    error: allowanceError 
+  } = useAllowance({
+    owner: (address || '0x0000000000000000000000000000000000000000') as `0x${string}`,
+    spender: gatewayAddress as `0x${string}`,
+    skip: !address || !isConnected
+  });
+
+  const currentAllowance = parseFloat(currentAllowanceStr || '0');
+  const error = approveError?.message || transferAuthError?.message || allowanceError?.message || '';
   
   // Authorization関連
   const [authSignature, setAuthSignature] = useState<{
@@ -78,26 +116,85 @@ export default function PurchaseTab() {
     validBefore: bigint;
   } | null>(null);
 
-  // アドレス取得
-  const jpycAddress = getJPYCAddress();
-  const gatewayAddress = getGatewayAddress();
+  // React SDKでは自動でAllowanceが更新されるため、fetchAllowance関数は不要
 
-  // Allowance取得
-  const fetchAllowance = async () => {
-    if (!address) return;
-    try {
-      const allowance = await getJPYCAllowance(address, gatewayAddress);
-      setCurrentAllowance(allowance);
-    } catch (error) {
-      console.error('Allowance取得エラー:', error);
-    }
-  };
-
+  // React SDKの状態変化を監視
   useEffect(() => {
-    if (isConnected) {
-      fetchAllowance();
+    // Approve成功後、自動でPay実行
+    if (isApproveSuccess && state === 'approvePending' && currentOrder) {
+      const executePayAfterApprove = async () => {
+        try {
+          setState('payPending');
+          const { parseJPYC } = await import('@/lib/jpycClient');
+          const amountWei = parseJPYC(currentOrder.total.toString());
+          const metaHash = generateMetaHash(currentOrder.orderId, currentOrder.items);
+          
+          const payHash = await executePayment(currentOrder.orderId, amountWei, metaHash);
+          
+          setCurrentOrder(prev => prev ? { ...prev, txHash: payHash } : null);
+          setState('success');
+          
+          // ローカルストレージに保存
+          const savedOrders = JSON.parse(localStorage.getItem('jpyc-orders') || '[]');
+          const orderWithHash = {
+            ...currentOrder,
+            orderIdHash: orderIdToBytes32(currentOrder.orderId),
+            txHash: payHash,
+            status: 'completed'
+          };
+          savedOrders.push(orderWithHash);
+          localStorage.setItem('jpyc-orders', JSON.stringify(savedOrders));
+          
+        } catch (error: any) {
+          console.error('Pay実行エラー:', error);
+          setState('failed');
+        }
+      };
+      
+      executePayAfterApprove();
     }
-  }, [isConnected, chainId]);
+  }, [isApproveSuccess, state, currentOrder]);
+
+  // Transfer Auth状態の詳細監視
+  useEffect(() => {
+    console.log('🔄 Transfer Auth状態変化:', {
+      isTransferAuthLoading,
+      isTransferAuthSuccess,
+      transferAuthError: transferAuthError?.message,
+      transferAuthHash,
+      state
+    });
+  }, [isTransferAuthLoading, isTransferAuthSuccess, transferAuthError, transferAuthHash, state]);
+
+  // Transfer Auth成功の監視
+  useEffect(() => {
+    if (isTransferAuthSuccess && state === 'transferAuthPending' && currentOrder) {
+      console.log('✅ Transfer Auth成功検出:', transferAuthHash);
+      const hash = transferAuthHash;
+      setCurrentOrder(prev => prev ? { ...prev, txHash: hash || 'pending' } : null);
+      setState('success');
+      
+      // ローカルストレージに保存
+      const savedOrders = JSON.parse(localStorage.getItem('jpyc-orders') || '[]');
+      const orderWithHash = {
+        ...currentOrder,
+        orderIdHash: orderIdToBytes32(currentOrder.orderId),
+        txHash: hash || 'pending',
+        status: 'completed',
+        paymentMethod: 'transferWithAuthorization-react-sdk'
+      };
+      savedOrders.push(orderWithHash);
+      localStorage.setItem('jpyc-orders', JSON.stringify(savedOrders));
+    }
+  }, [isTransferAuthSuccess, state, currentOrder, transferAuthHash]);
+
+  // Transfer Authエラーの監視
+  useEffect(() => {
+    if (transferAuthError && state === 'transferAuthPending') {
+      console.error('❌ Transfer Authエラー検出:', transferAuthError);
+      setState('failed');
+    }
+  }, [transferAuthError, state]);
 
   // カートに追加
   const addToCart = (product: typeof PRODUCTS[0]) => {
@@ -138,80 +235,71 @@ export default function PurchaseTab() {
     setState('orderGenerated');
   };
 
-  // Approve + Pay フロー
+  // Approve + Pay フロー（React SDKフック版）
   const handleApproveAndPay = async () => {
-    if (!currentOrder || !address) return;
+    if (!currentOrder || !address || !approve) return;
 
     try {
-      setError('');
-      const amount = parseJPYC(currentOrder.total.toString());
-      const metaHash = generateMetaHash(currentOrder.orderId, currentOrder.items);
+      const amountNum = currentOrder.total; // React SDKは数値をそのまま使用
 
-      // Step 1: Allowanceチェック
-      await fetchAllowance();
-      
-      if (currentAllowance < amount) {
+      // Step 1: Allowanceチェック（React SDKは自動更新）
+      if (currentAllowance < amountNum) {
         // Approve が必要
         setState('approvePending');
         
-        const approveHash = await executeApprove(gatewayAddress, amount);
-        console.log('Approve TX:', approveHash);
+        await approve({
+          spender: gatewayAddress as `0x${string}`,
+          value: amountNum // React SDKは数値をそのまま渡す
+        });
         
-        // Approve完了を待つ（簡易実装）
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        await fetchAllowance();
-      }
-
-      // Step 2: Pay実行
-      setState('payPending');
-      const payHash = await executePayment(currentOrder.orderId, amount, metaHash);
-      
-      // 成功
+        // useEffectがApprove成功を監視してPay実行する
+        console.log('React SDK Approve実行中... useEffectが完了を監視します');
+      } else {
+        // 既に十分なAllowanceがある場合、直接Pay実行
+        setState('payPending');
+        const { parseJPYC } = await import('@/lib/jpycClient');
+        const amountWei = parseJPYC(amountNum.toString());
+        const metaHash = generateMetaHash(currentOrder.orderId, currentOrder.items);
+        
+        const payHash = await executePayment(currentOrder.orderId, amountWei, metaHash);
+        
       setCurrentOrder(prev => prev ? { ...prev, txHash: payHash } : null);
       setState('success');
-      
-      // ローカルストレージに保存
-      const savedOrders = JSON.parse(localStorage.getItem('jpyc-orders') || '[]');
-      const orderWithHash = {
-        ...currentOrder,
-        orderIdHash: orderIdToBytes32(currentOrder.orderId),
-        txHash: payHash,
-        status: 'completed'
-      };
-      savedOrders.push(orderWithHash);
-      localStorage.setItem('jpyc-orders', JSON.stringify(savedOrders));
+      }
 
     } catch (error: any) {
-      setError(error.message || 'Approve + Pay に失敗しました');
+      console.error('Approve + Pay エラー:', error);
       setState('failed');
     }
   };
 
-  // Permit + Pay フロー
+  // Permit + Pay フロー（React SDK対応）
   const handlePermitAndPay = async () => {
     if (!currentOrder || !address) return;
 
     try {
-      setError('');
       setState('permitPending');
       
-      const amount = parseJPYC(currentOrder.total.toString());
+      const amountNum = currentOrder.total; // React SDKは数値をそのまま使用
       const metaHash = generateMetaHash(currentOrder.orderId, currentOrder.items);
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 60 * 10); // 10分後
 
-      // Step 1: Permit署名作成
+      // Step 1: Permit署名作成（wei単位変換が必要）
+      const { parseJPYC } = await import('@/lib/jpycClient');
+      const amountWei = parseJPYC(amountNum.toString());
+      
       const permitData = await createPermitSignature(
         address,
         gatewayAddress,
-        amount,
+        amountWei, // createPermitSignatureはwei単位を期待
         deadline
       );
 
-      // Step 2: PermitAndPay実行
+      // Step 2: PermitAndPay実行（wei単位を使用）
       setState('permitAndPayPending');
       const hash = await executePermitAndPay(
         currentOrder.orderId,
-        amount,
+        amountWei, // executePermitAndPayはwei単位を期待
         metaHash,
         address,
         deadline,
@@ -238,30 +326,29 @@ export default function PurchaseTab() {
       localStorage.setItem('jpyc-orders', JSON.stringify(savedOrders));
 
     } catch (error: any) {
-      setError(error.message || 'Permit + Pay に失敗しました');
+      console.error('Permit + Pay エラー:', error);
       setState('failed');
     }
   };
 
-  // Transfer Authorization決済
-  const handleTransferAuthPayment = async () => {
+  // Transfer Authorization署名作成（Step 1）
+  const handleCreateTransferAuthSignature = async () => {
     if (!address || !currentOrder) return;
     
     try {
-      setError('');
-      
-      const amount = parseJPYC(currentOrder.total.toString());
-      const metaHash = generateMetaHash(currentOrder.orderId, currentOrder.items);
+      const amountNum = currentOrder.total;
       const nonce = generateNonce();
       const { validAfter, validBefore } = generateValidityWindow(600); // 10分有効
 
-      // Step 1: transferWithAuthorization署名作成（merchant宛）
+      // transferWithAuthorization署名作成（merchant宛）
       const merchantAddress = getMerchantAddress();
+      const { parseJPYC } = await import('@/lib/jpycClient');
+      const amountWei = parseJPYC(amountNum.toString());
 
       const signature = await createTransferWithAuthorizationSignature(
         address,
         merchantAddress as `0x${string}`,
-        amount,
+        amountWei, // 署名作成はwei単位を期待
         validAfter,
         validBefore,
         nonce
@@ -276,22 +363,71 @@ export default function PurchaseTab() {
         validBefore
       });
 
-      // Step 2: PaymentGateway経由で決済実行
+      // 署名作成完了、実行待機状態に
+      setState('transferAuthSignatureReady');
+
+    } catch (error: any) {
+      console.error('Transfer Authorization署名作成エラー:', error);
+      setState('failed');
+    }
+  };
+
+  // Transfer Authorization実行（Step 2）
+  const handleExecuteTransferAuth = async () => {
+    console.log('🚀 handleExecuteTransferAuth開始');
+    console.log('isTransferAuthReady:', isTransferAuthReady);
+    console.log('transferWithAuthorization:', !!transferWithAuthorization);
+    console.log('authSignature:', !!authSignature);
+    
+    if (!address || !currentOrder || !transferWithAuthorization || !authSignature) {
+      console.error('❌ 必要な条件が不足:', {
+        address: !!address,
+        currentOrder: !!currentOrder,
+        transferWithAuthorization: !!transferWithAuthorization,
+        authSignature: !!authSignature
+      });
+      alert('実行条件が不足しています');
+      return;
+    }
+    
+    try {
+      const amountNum = currentOrder.total;
+      const merchantAddress = getMerchantAddress();
+
+      console.log('📊 実行パラメータ:', {
+        from: address,
+        to: merchantAddress,
+        value: amountNum,
+        validAfter: authSignature.validAfter,
+        validBefore: authSignature.validBefore,
+        nonce: authSignature.nonce
+      });
+
       setState('transferAuthPending');
+      
+      console.log('🔄 従来のPaymentGateway経由で実行します...');
+      
+      // React SDKフックではなく、従来のPaymentGateway経由で実行
+      const { parseJPYC } = await import('@/lib/jpycClient');
+      const amountWei = parseJPYC(amountNum.toString());
+      const metaHash = generateMetaHash(currentOrder.orderId, currentOrder.items);
+      
       const hash = await executePaymentWithTransferAuth(
         currentOrder.orderId,
-        amount,
+        amountWei,
         metaHash,
         address,
-        validAfter,
-        validBefore,
-        nonce,
+        authSignature.validAfter,
+        authSignature.validBefore,
+        authSignature.nonce,
         {
-          v: signature.v,
-          r: signature.r,
-          s: signature.s
+          v: authSignature.v,
+          r: authSignature.r,
+          s: authSignature.s
         }
       );
+
+      console.log('✅ PaymentGateway経由のTransfer Auth完了:', hash);
 
       // 成功
       setCurrentOrder(prev => prev ? { ...prev, txHash: hash } : null);
@@ -304,13 +440,13 @@ export default function PurchaseTab() {
         orderIdHash: orderIdToBytes32(currentOrder.orderId),
         txHash: hash,
         status: 'completed',
-        paymentMethod: 'transferWithAuthorization'
+        paymentMethod: 'transferWithAuthorization-paymentgateway'
       };
       savedOrders.push(orderWithHash);
       localStorage.setItem('jpyc-orders', JSON.stringify(savedOrders));
 
     } catch (error: any) {
-      setError(error.message || 'Transfer Authorization決済に失敗しました');
+      console.error('❌ Transfer Authorization実行エラー:', error);
       setState('failed');
     }
   };
@@ -322,8 +458,10 @@ export default function PurchaseTab() {
     setState('cartReview');
     setCart([]);
     setCurrentOrder(null);
-    setError('');
     setAuthSignature(null);
+    // React SDKの状態もリセット
+    resetApprove();
+    resetTransferAuth();
   };
 
   if (!isConnected) {
@@ -470,13 +608,13 @@ export default function PurchaseTab() {
                 </button>
 
                 <button
-                  onClick={handleTransferAuthPayment}
+                  onClick={handleCreateTransferAuthSignature}
                   className="p-6 bg-purple-50 border border-purple-200 rounded-xl hover:bg-purple-100 transition-colors text-left"
                 >
                   <div className="text-2xl mb-2">📤</div>
                   <h5 className="font-bold text-purple-900">Transfer Auth</h5>
                   <p className="text-sm text-purple-700 mt-1">
-                    EIP-3009による事前承認送金<br/>
+                    EIP-3009による事前承認送信<br/>
                     署名 → 決済実行
                   </p>
                   <div className="mt-3 text-xs text-purple-600">
@@ -484,6 +622,25 @@ export default function PurchaseTab() {
                   </div>
                 </button>
               </div>
+            </div>
+          </div>
+        );
+
+      case 'transferAuthSignatureReady':
+        return (
+          <div className="space-y-6">
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-6">
+              <h3 className="text-xl font-bold text-purple-900 mb-4">✅ Transfer Auth署名完了</h3>
+              <p className="text-purple-800 mb-4">
+                署名が正常に作成されました。React SDKフックで決済を実行してください。
+              </p>
+              <button
+                onClick={handleExecuteTransferAuth}
+                disabled={!isTransferAuthReady}
+                className="w-full px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 disabled:opacity-50 transition-colors"
+              >
+                🚀 Transfer Auth決済を実行
+              </button>
             </div>
           </div>
         );
@@ -574,8 +731,8 @@ export default function PurchaseTab() {
     <div className="space-y-6">
       {/* ヘッダー */}
       <div>
-        <h2 className="text-3xl font-bold text-gray-900">💳 Purchase</h2>
-        <p className="text-gray-600 mt-2 text-lg">商品購入 - State Machine決済フロー</p>
+        <h2 className="text-3xl font-bold text-gray-900">💳 Purchase (React SDK)</h2>
+        <p className="text-gray-600 mt-2 text-lg">React SDKフックによる商品購入 - State Machine決済フロー</p>
       </div>
 
       {/* State表示 */}
@@ -588,7 +745,33 @@ export default function PurchaseTab() {
             </span>
           </div>
           <div className="text-sm text-blue-600">
-            Current Allowance: <span className="font-bold">{formatJPYC(currentAllowance)} JPYC</span>
+            Current Allowance: <span className="font-bold">{currentAllowance.toLocaleString()} JPYC</span>
+          </div>
+        </div>
+      </div>
+
+      {/* React SDK状態デバッグパネル */}
+      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
+        <h4 className="text-lg font-semibold text-gray-900 mb-4">🔍 React SDK状態デバッグ</h4>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <h5 className="font-medium text-gray-700 mb-2">Approve</h5>
+            <div className="space-y-1">
+              <div>isReady: <span className={isApproveReady ? "text-green-600" : "text-red-600"}>{isApproveReady ? "✓" : "✗"}</span></div>
+              <div>isLoading: <span className={isApproveLoading ? "text-orange-600" : "text-gray-600"}>{isApproveLoading ? "✓" : "✗"}</span></div>
+              <div>isSuccess: <span className={isApproveSuccess ? "text-green-600" : "text-gray-600"}>{isApproveSuccess ? "✓" : "✗"}</span></div>
+              <div>error: <span className={approveError ? "text-red-600" : "text-gray-600"}>{approveError ? "✓" : "✗"}</span></div>
+            </div>
+          </div>
+          <div>
+            <h5 className="font-medium text-gray-700 mb-2">Transfer Auth</h5>
+            <div className="space-y-1">
+              <div>isReady: <span className={isTransferAuthReady ? "text-green-600" : "text-red-600"}>{isTransferAuthReady ? "✓" : "✗"}</span></div>
+              <div>isLoading: <span className={isTransferAuthLoading ? "text-orange-600" : "text-gray-600"}>{isTransferAuthLoading ? "✓" : "✗"}</span></div>
+              <div>isSuccess: <span className={isTransferAuthSuccess ? "text-green-600" : "text-gray-600"}>{isTransferAuthSuccess ? "✓" : "✗"}</span></div>
+              <div>error: <span className={transferAuthError ? "text-red-600" : "text-gray-600"}>{transferAuthError ? "✓" : "✗"}</span></div>
+              <div>hash: <span className="font-mono text-xs">{transferAuthHash || "なし"}</span></div>
+            </div>
           </div>
         </div>
       </div>

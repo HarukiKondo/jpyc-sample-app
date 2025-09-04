@@ -3,7 +3,19 @@
 import { useState } from "react";
 import { useAccount, useChainId } from 'wagmi';
 import { isAddress } from 'viem';
-import { getJPYCAddress, executeTransfer, parseJPYC } from '@/lib/jpycClient';
+// TODO: React SDKのuseTransferフックをインポートしてください
+// import { useTransfer } from '@jpyc/sdk-react';
+
+/**
+ * 🎯 学習目標: React SDKの生フックを直接使用
+ * 
+ * JPYC SDKの本質的な使い方を学習します：
+ * 1. React SDKフックのインポート
+ * 2. フックの呼び出しと状態取得
+ * 3. transfer関数の実行
+ * 
+ * 💡 ポイント: React SDK提供のフックを直接使用してオンチェーン操作を体験
+ */
 
 export default function TransferTab() {
   const { address, isConnected } = useAccount();
@@ -11,11 +23,26 @@ export default function TransferTab() {
   
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
-  const [isPending, setIsPending] = useState(false);
-  const [isConfirming, setIsConfirming] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [hash, setHash] = useState<`0x${string}` | null>(null);
-  const [error, setError] = useState<string | null>(null);
+
+  // TODO: React SDKのuseTransferフックを使用してください
+  // const { 
+  //   transfer, 
+  //   isReady, 
+  //   isLoading, 
+  //   isSuccess, 
+  //   error, 
+  //   hash, 
+  //   reset 
+  // } = useTransfer();
+
+  // 仮の状態（練習用）
+  const transfer = null;
+  const isReady = false;
+  const isLoading = false;
+  const isSuccess = false;
+  const error = null;
+  const hash = null;
+  const reset = () => {};
 
   const handleTransfer = async () => {
     if (!isConnected) {
@@ -24,7 +51,7 @@ export default function TransferTab() {
     }
 
     if (!recipient || !amount) {
-      alert("送金先アドレスと金額を入力してください");
+      alert("送信先アドレスと金額を入力してください");
       return;
     }
 
@@ -58,8 +85,8 @@ export default function TransferTab() {
       }, 3000);
       
     } catch (err: any) {
-      console.error("送金エラー:", err);
-      setError(err.message || "送金に失敗しました");
+      console.error("送信エラー:", err);
+      setError(err.message || "送信に失敗しました");
       setIsPending(false);
       setIsConfirming(false);
     }
@@ -74,17 +101,17 @@ export default function TransferTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">JPYC送金</h2>
-          <p className="text-gray-600 mt-1">指定したアドレスにJPYCを送金します</p>
+          <h2 className="text-2xl font-bold text-gray-900">JPYC送信</h2>
+          <p className="text-gray-600 mt-1">指定したアドレスにJPYCを送信します</p>
         </div>
         <div className="flex items-center space-x-2 text-sm text-gray-600">
           <div className="w-3 h-3 bg-warning-500 rounded-full"></div>
-          <span>基本送金機能</span>
+          <span>基本送信機能</span>
         </div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* メイン送金フォーム */}
+        {/* メイン送信フォーム */}
         <div className="lg:col-span-2">
           <div className="bg-white border border-gray-200 rounded-2xl shadow-soft p-6">
             <div className="flex items-center mb-6">
@@ -94,7 +121,7 @@ export default function TransferTab() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">送金フォーム</h3>
+                <h3 className="text-lg font-semibold text-gray-900">送信フォーム</h3>
                 <p className="text-sm text-gray-600">ERC20 Transfer 操作</p>
               </div>
             </div>
@@ -102,7 +129,7 @@ export default function TransferTab() {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  送金先アドレス
+                  送信先アドレス
                 </label>
                 <div className="relative">
                   <input
@@ -124,7 +151,7 @@ export default function TransferTab() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  送金額 (JPYC)
+                  送信額 (JPYC)
                 </label>
                 <div className="relative">
                   <input
@@ -141,7 +168,7 @@ export default function TransferTab() {
                     <span className="text-gray-500 text-sm font-medium">JPYC</span>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">送金したい金額を入力してください</p>
+                <p className="text-xs text-gray-500 mt-1">送信したい金額を入力してください</p>
               </div>
 
               <button
@@ -157,14 +184,14 @@ export default function TransferTab() {
                 ) : isConfirming ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    送金処理中...
+                    送信処理中...
                   </div>
                 ) : (
                   <div className="flex items-center justify-center">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
-                    送金実行
+                    送信実行
                   </div>
                 )}
               </button>
@@ -179,7 +206,7 @@ export default function TransferTab() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-red-900">送金エラー</h4>
+                    <h4 className="font-semibold text-red-900">送信エラー</h4>
                     <p className="text-sm text-red-700 mt-1">{error}</p>
                   </div>
                 </div>
@@ -200,7 +227,7 @@ export default function TransferTab() {
                   </div>
                   <div className="flex-1">
                     <h4 className="font-semibold text-green-900">
-                      {isConfirming ? "送金処理中..." : isSuccess ? "送金完了!" : "送金中..."}
+                      {isConfirming ? "送信処理中..." : isSuccess ? "送信完了!" : "送信中..."}
                     </h4>
                     <p className="text-sm text-green-700 mt-1">
                       トランザクションハッシュ:
@@ -213,7 +240,7 @@ export default function TransferTab() {
                         onClick={resetForm}
                         className="mt-3 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
                       >
-                        新しい送金
+                        新しい送信
                       </button>
                     )}
                   </div>
@@ -226,7 +253,7 @@ export default function TransferTab() {
         {/* サイドバー情報 */}
         <div className="space-y-4">
           <div className="bg-white border border-gray-200 rounded-2xl shadow-soft p-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">送金について</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">送信について</h4>
             
             <div className="space-y-4">
               <div className="flex items-start">
@@ -236,10 +263,10 @@ export default function TransferTab() {
                   </svg>
                 </div>
                 <div>
-                  <h5 className="font-medium text-gray-900 mb-1">基本送金</h5>
+                  <h5 className="font-medium text-gray-900 mb-1">基本送信</h5>
                   <p className="text-sm text-gray-600">
                     ERC20の<code className="bg-gray-100 px-1 rounded text-xs">transfer</code>関数を使用した
-                    シンプルな送金です。
+                    シンプルな送信です。
                   </p>
                 </div>
               </div>
@@ -253,7 +280,7 @@ export default function TransferTab() {
                 <div>
                   <h5 className="font-medium text-gray-900 mb-1">注意事項</h5>
                   <p className="text-sm text-gray-600">
-                    これは「購入」ではありません。注文IDとは紐付かない基本的な送金操作です。
+                    これは「購入」ではありません。注文IDとは紐付かない基本的な送信操作です。
                   </p>
                 </div>
               </div>
@@ -270,7 +297,7 @@ export default function TransferTab() {
                 </div>
                 <h5 className="font-medium text-gray-900 mb-1">ウォレット未接続</h5>
                 <p className="text-sm text-gray-600">
-                  送金を行うには、まずウォレットを接続してください。
+                  送信を行うには、まずウォレットを接続してください。
                 </p>
               </div>
             </div>

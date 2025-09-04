@@ -61,7 +61,7 @@ export default function AdminTab() {
         fromBlock = BigInt(0);
       } else {
         // テストネットでは最新10000ブロック、または0番ブロックから
-        const blockRange = BigInt(10000);
+        const blockRange = BigInt(300);
         fromBlock = latestBlock > blockRange ? latestBlock - blockRange : BigInt(0);
       }
 
@@ -337,7 +337,7 @@ export default function AdminTab() {
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">👨‍💼 Admin Dashboard</h2>
+          <h2 className="text-3xl font-bold text-gray-900">👨‍💼 Admin Dashboardjijijiiji</h2>
           <p className="text-gray-600 mt-2 text-lg">Merchant宛JPYC受信履歴</p>
         </div>
         <button
