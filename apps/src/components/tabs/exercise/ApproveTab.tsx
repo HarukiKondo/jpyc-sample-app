@@ -1,27 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { useAccount, useChainId } from 'wagmi';
-import { isAddress } from 'viem';
-// TODO: React SDKのフックをインポートしてください
-// import { useApprove, useAllowance } from '@jpyc/sdk-react';
-import { getGatewayAddress } from '@/lib/jpycClient';
+import { useAccount } from 'wagmi';
+// 📚 学習ガイド: JPYC React SDKを使ったApprove機能の実装
+// 
+// 🎯 目標: useApproveフックを使って、簡単にApprove機能を実装しよう！
+//
+// TODO: 69行目からapprove関数を呼び出してApprove実行しよう！
+// 
+// 📖 JPYC React SDKの手順:
+// 1. JPYC React SDKから必要なフックをインポート
+// 2. useApproveフックでApprove機能と状態を取得  
+// 3. approve関数を呼び出してApprove実行
+// 4. useAllowanceフックで現在の許可額を取得
 
-/**
- * 🎓 学習目標: React SDKのuseApproveとuseAllowanceフックを実装
- * 
- * 📋 実装手順:
- * 1. React SDKフックをインポート
- * 2. useApprove()フックを呼び出し
- * 3. useAllowance()フックでPayment Gateway許可額を取得
- * 4. handleApprove関数でapprove()を実行
- * 
- * 🎯 完成版: apps/src/components/tabs/react-sdk/ApproveTab.tsx を参考にしてください
- */
+// 🚀 STEP 1: JPYC React SDKからApprove関連フックをインポート
+import { useApprove, useAllowance } from '@jpyc/sdk-react';
+import { getGatewayAddress } from '@/lib/jpycClient';
 
 export default function ApproveTab() {
   const { address, isConnected } = useAccount();
-  const chainId = useChainId();
 
   // State
   const [amount, setAmount] = useState<string>('');
@@ -29,74 +27,70 @@ export default function ApproveTab() {
   // アドレス取得
   const gatewayAddress = getGatewayAddress();
 
-  // TODO: React SDKフックを使用してください
-  // const { 
-  //   approve, 
-  //   isReady, 
-  //   isLoading, 
-  //   isSuccess, 
-  //   error, 
-  //   hash, 
-  //   reset 
-  // } = useApprove();
+  // 🚀 STEP 2: useApproveフックでApprove機能と状態を取得
+  const { 
+    approve,    // Approve実行関数
+    isReady,    // SDK準備完了状態
+    isLoading,  // トランザクション実行中状態
+    isSuccess,  // Approve成功状態
+    error,      // エラー情報
+    hash,       // トランザクションハッシュ
+    reset       // 状態リセット関数
+  } = useApprove();
 
-  // TODO: Allowance取得（React SDKフック）
-  // const { 
-  //   data: currentAllowanceStr, 
-  //   isPending: loadingAllowance, 
-  //   error: allowanceError 
-  // } = useAllowance({
-  //   owner: (address || '0x0000000000000000000000000000000000000000') as `0x${string}`,
-  //   spender: gatewayAddress as `0x${string}`,
-  //   skip: !address || !isConnected
-  // });
-
-  // 仮の状態（練習用）
-  const approve = null;
-  const isReady = false;
-  const isLoading = false;
-  const isSuccess = false;
-  const error = null;
-  const hash = null;
-  const reset = () => {};
-  const currentAllowanceStr = '0';
-  const loadingAllowance = false;
-  const allowanceError = null;
+  // 🚀 STEP 3: useAllowanceフックで現在の許可額を取得
+  const { 
+    data: currentAllowanceStr,  // 許可額（文字列、decimal変換済み）
+    isPending: loadingAllowance, // データ取得中状態
+    error: allowanceError       // エラー情報
+  } = useAllowance({
+    owner: address as `0x${string}`,
+    spender: gatewayAddress as `0x${string}`,
+  });
 
   // React SDKは文字列で返すため、数値に変換
   const currentAllowance = parseFloat(currentAllowanceStr || '0');
 
-  // Allowance取得
-  const fetchAllowance = async () => {
-    if (!address) return;
-    
-    try {
-      setLoadingAllowance(true);
-      setApproveError('');
-      const allowance = await getJPYCAllowance(address, gatewayAddress);
-      setCurrentAllowance(allowance);
-    } catch (error: any) {
-      console.error('Allowance取得エラー:', error);
-      setApproveError(error.message || 'Allowance取得に失敗しました');
-    } finally {
-      setLoadingAllowance(false);
-    }
-  };
-
-  // Approve実行
+  // Approve実行（React SDKフック版）
   const handleApprove = async () => {
-    if (!amount || !isConnected) return;
+    if (!isConnected) {
+      alert("ウォレットを接続してください");
+      return;
+    }
+
+    if (!amount) {
+      alert("承認額を入力してください");
+      return;
+    }
+
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum < 0) {
+      alert("有効な金額を入力してください");
+      return;
+    }
+
+    if (!approve) {
+      alert("Approve機能の準備ができていません");
+      return;
+    }
 
     try {
-      setApproveError('');
-      const value = parseJPYC(amount);
+      // 🚀 STEP 4: approve関数を呼び出してApprove実行
+      // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
       
-      const approveHash = await executeApprove(gatewayAddress, value);
-      console.log('Approve TX:', approveHash);
+      // TODO：approve関数を呼び出してApprove実行しよう！
+      // ヒント: approve関数は以下の引数を受け取ります：
+      //   - 非同期なのでawaitを使用しよう！
+      //   - spender: 承認先アドレス (gatewayAddress as `0x${string}`)
+      //   - value: 承認額 (amountNum - 数値をそのまま渡すだけ！)
+      // 完成版は ../react-sdk/ApproveTab.tsx を参照してください
       
-    } catch (error: any) {
-      console.error('Approve エラー:', error);
-      setApproveError(error.message || 'Approve実行に失敗しました');
+      console.log("TODO: approve関数を実装してください");
+      console.log("承認先:", gatewayAddress);
+      console.log("承認額:", amountNum);
+    } catch (err: unknown) {
+      console.error("Approve エラー:", err);
+      // エラーはuseApproveのerror状態で自動管理される
     }
   };
 
@@ -107,19 +101,12 @@ export default function ApproveTab() {
     window.dispatchEvent(event);
   };
 
-  // 初期ロード時とトランザクション成功時にAllowance更新
-  useEffect(() => {
-    if (isConnected) {
-      fetchAllowance();
-    }
-  }, [isConnected, chainId]);
-
-  useEffect(() => {
-    if (isSuccess) {
-      fetchAllowance();
-      setAmount('');
-    }
-  }, [isSuccess]);
+  // React SDKでは自動でAllowanceが更新されるため、useEffectは不要
+  // 成功時にフォームをリセット
+  const resetForm = () => {
+    setAmount('');
+    reset(); // React SDKの状態もリセット
+  };
 
   if (!isConnected) {
     return (
@@ -139,8 +126,8 @@ export default function ApproveTab() {
     <div className="space-y-6">
       {/* ヘッダー */}
       <div>
-        <h2 className="text-3xl font-bold text-gray-900">ERC20 Approve</h2>
-        <p className="text-gray-600 mt-2 text-lg">Payment Gatewayへの許可額設定</p>
+        <h2 className="text-3xl font-bold text-gray-900">ERC20 Approve (学習版)</h2>
+        <p className="text-gray-600 mt-2 text-lg">React SDKのuseApproveフックを実装してPayment Gatewayに承認してみよう</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -160,7 +147,7 @@ export default function ApproveTab() {
                   ) : (
                     <div>
                       <div className="text-2xl font-bold text-blue-600">
-                        {formatJPYC(currentAllowance)}
+                        {currentAllowance.toLocaleString()}
                       </div>
                       <div className="text-sm text-blue-500">JPYC</div>
                     </div>
@@ -185,7 +172,7 @@ export default function ApproveTab() {
                     min="0"
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 font-semibold"
                     style={{ color: '#111827 !important' }}
-                    disabled={isPending || isConfirming}
+                    disabled={isLoading}
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                     <span className="text-gray-500 text-sm font-medium">JPYC</span>
@@ -197,13 +184,13 @@ export default function ApproveTab() {
               {/* Approveボタン */}
               <button
                 onClick={handleApprove}
-                disabled={!amount || isPending || isConfirming}
+                disabled={!isConnected || !isReady || isLoading || !amount}
                 className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isPending || isConfirming ? (
+                {isLoading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {isPending ? '署名待ち...' : '処理中...'}
+                    処理中...
                   </div>
                 ) : (
                   'JPYC Approve実行'
@@ -211,16 +198,16 @@ export default function ApproveTab() {
               </button>
 
               {/* 説明テキスト */}
-              {isPending && (
-                <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    ⚠️ ウォレットで「NFT Approval」と表示される場合がありますが、これはJPYCトークン（ERC20）のApprove操作です。
+              {isLoading && (
+                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    🔄 React SDKがApprove処理を実行中です...
                   </p>
                 </div>
               )}
 
               {/* Purchaseタブへのボタン */}
-              {currentAllowance > BigInt(0) && (
+              {currentAllowance > 0 && (
                 <button
                   onClick={goToPurchase}
                   className="w-full px-6 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
@@ -231,7 +218,7 @@ export default function ApproveTab() {
             </div>
 
             {/* エラー表示 */}
-            {(error || approveError) && (
+            {(error || allowanceError) && (
               <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl">
                 <div className="flex items-start">
                   <div className="w-6 h-6 bg-red-100 rounded-lg flex items-center justify-center mr-3 mt-0.5">
@@ -240,11 +227,9 @@ export default function ApproveTab() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-red-900">
-                      {approveError ? 'SDK実装エラー' : 'Approveエラー'}
-                    </h4>
+                    <h4 className="font-semibold text-red-900">React SDK Approveエラー</h4>
                     <p className="text-sm text-red-700 mt-1 whitespace-pre-line">
-                      {approveError || error?.message}
+                      {error?.message || allowanceError?.message || 'エラーが発生しました'}
                     </p>
                   </div>
                 </div>
@@ -268,6 +253,12 @@ export default function ApproveTab() {
                     <div className="font-mono text-xs text-green-800 bg-green-100 p-2 rounded-lg mt-2 break-all">
                       {hash}
                     </div>
+                    <button
+                      onClick={resetForm}
+                      className="mt-3 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      新しいApprove
+                    </button>
                   </div>
                 </div>
               </div>
@@ -323,78 +314,6 @@ export default function ApproveTab() {
               <div className="flex items-center">
                 <span className="w-6 h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xs font-bold mr-3">3</span>
                 Permitタブで署名学習
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 学習ガイドパネル */}
-        <div className="bg-orange-50 border border-orange-200 rounded-2xl shadow-lg p-6">
-          <h4 className="text-lg font-semibold text-orange-900 mb-4">📚 Approve実装ガイド</h4>
-          
-          <div className="space-y-4">
-            <div className="flex items-start">
-              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3 mt-0.5">
-                <span className="text-orange-600 font-bold text-sm">1</span>
-              </div>
-              <div>
-                <h5 className="font-medium text-gray-900 mb-1">フックをインポート</h5>
-                <div className="mt-2 p-2 bg-white rounded text-xs font-mono border">
-                  import &#123; useApprove, useAllowance &#125; from '@jpyc/sdk-react';
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-start">
-              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3 mt-0.5">
-                <span className="text-orange-600 font-bold text-sm">2</span>
-              </div>
-              <div>
-                <h5 className="font-medium text-gray-900 mb-1">useApproveフックを使用</h5>
-                <div className="mt-2 p-2 bg-white rounded text-xs font-mono border">
-                  const &#123; approve, isReady, isLoading, isSuccess, error, hash, reset &#125; = useApprove();
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-start">
-              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3 mt-0.5">
-                <span className="text-orange-600 font-bold text-sm">3</span>
-              </div>
-              <div>
-                <h5 className="font-medium text-gray-900 mb-1">approve実行</h5>
-                <div className="mt-2 p-2 bg-white rounded text-xs font-mono border">
-                  await approve(&#123;<br/>
-                  &nbsp;&nbsp;spender: gatewayAddress as `0x$&#123;string&#125;`,<br/>
-                  &nbsp;&nbsp;value: amountNum // 数値をそのまま渡す<br/>
-                  &#125;);
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 p-4 bg-white border border-orange-200 rounded-lg">
-            <h5 className="font-medium text-orange-900 mb-2">実装チェックリスト</h5>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span>✓ React SDKフックインポート:</span>
-                <span className="text-red-600">未実装</span>
-              </div>
-              <div className="flex justify-between">
-                <span>✓ useApprove()呼び出し:</span>
-                <span className="text-red-600">未実装</span>
-              </div>
-              <div className="flex justify-between">
-                <span>✓ useAllowance()呼び出し:</span>
-                <span className="text-red-600">未実装</span>
-              </div>
-              <div className="flex justify-between">
-                <span>✓ handleApprove実装:</span>
-                <span className="text-red-600">未実装</span>
-              </div>
-              <div className="flex justify-between">
-                <span>✓ 状態管理統合:</span>
-                <span className="text-red-600">未実装</span>
               </div>
             </div>
           </div>

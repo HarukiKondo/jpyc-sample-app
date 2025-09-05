@@ -1,51 +1,65 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAccount, useChainId } from 'wagmi';
+import { useState } from 'react';
+import { useAccount } from 'wagmi';
+// 📚 学習ガイド: JPYC React SDKを使ったPermit機能の実装
+// 
+// 🎯 目標: usePermitフックを使って、簡単にPermit機能を実装しよう！
+//
+// TODO: 96行目からpermit関数を呼び出してPermit実行しよう！
+// 
+// 📖 JPYC React SDKの手順:
+// 1. JPYC React SDKから必要なフックをインポート
+// 2. usePermitフックでPermit機能と状態を取得  
+// 3. permit関数を呼び出してPermit実行
+// 4. useAllowanceフックで現在の許可額を取得
+
+// 🚀 STEP 1: JPYC React SDKからPermit関連フックをインポート
+import { usePermit, useAllowance } from '@jpyc/sdk-react';
 import { 
-  getJPYCAddress, 
-  getGatewayAddress, 
-  getJPYCAllowance,
-  formatJPYC, 
-  parseJPYC,
-  createPermitSignature,
-  executeBroadcastPermit
- } from '@/lib/jpycClient';
+  getGatewayAddress,
+  createPermitSignature
+} from '@/lib/jpycClient';
 
 export default function PermitTab() {
   const { address, isConnected } = useAccount();
-  const chainId = useChainId();
   
   // State
   const [value, setValue] = useState<string>('');
   const [deadline, setDeadline] = useState<string>('');
-  const [permitData, setPermitData] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [broadcasting, setBroadcasting] = useState(false);
-  const [broadcastTx, setBroadcastTx] = useState<string>('');
-  const [error, setError] = useState<string>('');
-  const [currentAllowance, setCurrentAllowance] = useState<bigint>(BigInt(0));
+  const [permitData, setPermitData] = useState<{
+    v: number;
+    r: `0x${string}`;
+    s: `0x${string}`;
+  } | null>(null);
 
   // アドレス取得
-  const jpycAddress = getJPYCAddress();
   const gatewayAddress = getGatewayAddress();
 
-  // Allowance取得
-  const fetchAllowance = async () => {
-    if (!address) return;
-    try {
-      const allowance = await getJPYCAllowance(address, gatewayAddress);
-      setCurrentAllowance(allowance);
-    } catch (error) {
-      console.error('Allowance取得エラー:', error);
-    }
-  };
+  // 🚀 STEP 2: usePermitフックでPermit機能と状態を取得
+  const { 
+    permit,                    // Permit実行関数
+    isReady,                   // SDK準備完了状態
+    isLoading: broadcasting,   // トランザクション実行中状態
+    isSuccess,                 // Permit成功状態
+    error: permitError,        // エラー情報
+    hash: broadcastTx,         // トランザクションハッシュ
+    reset                      // 状態リセット関数
+  } = usePermit();
 
-  useEffect(() => {
-    if (isConnected) {
-      fetchAllowance();
-    }
-  }, [isConnected, chainId]);
+  // 🚀 STEP 3: useAllowanceフックで現在の許可額を取得
+  const { 
+    data: currentAllowanceStr,  // 許可額（文字列、decimal変換済み）
+    isPending: loadingAllowance, // データ取得中状態
+    error: allowanceError       // エラー情報
+  } = useAllowance({
+    owner: address as `0x${string}`,
+    spender: gatewayAddress as `0x${string}`,
+  });
+
+  const currentAllowance = parseFloat(currentAllowanceStr || '0');
+  const loading = false; // Permit署名は即座に完了
+  const error = permitError?.message || allowanceError?.message || '';
 
   // デフォルト期限設定（10分後）
   const setDefaultDeadline = () => {
@@ -55,59 +69,65 @@ export default function PermitTab() {
 
   // Permit署名を作成
   const handleCreateSignature = async () => {
-    if (!value || !deadline || !address) return;
+    if (!value || !deadline || !address) {
+      alert("値段、期限、アドレスを確認してください");
+      return;
+    }
 
     try {
-      setLoading(true);
-      setError('');
       setPermitData(null);
 
-      const valueInWei = parseJPYC(value);
+      // createPermitSignature関数はbigint（wei単位）を期待するため、parseJPYCを使用
+      const valueNum = parseFloat(value);
+      const { parseJPYC } = await import('@/lib/jpycClient');
+      const valueInWei = parseJPYC(value); // 正しいdecimal変換を使用
       const deadlineBigInt = BigInt(deadline);
 
       const signature = await createPermitSignature(
         address,
         gatewayAddress,
-        valueInWei,
+        valueInWei, // wei単位で渡す
         deadlineBigInt
       );
 
       setPermitData(signature);
       
-    } catch (err: any) {
-      setError(err.message || 'Permit署名の作成に失敗しました');
-    } finally {
-      setLoading(false);
+    } catch (err: unknown) {
+      console.error('Permit署名作成エラー:', err);
+      alert(err.message || 'Permit署名の作成に失敗しました');
     }
   };
 
-  // Token.permitをブロードキャスト
+  // Token.permitをブロードキャスト（React SDKフック版）
   const handleBroadcastPermit = async () => {
-    if (!permitData || !address) return;
+    if (!permitData || !address || !permit) {
+      alert("Permit署名データまたは機能の準備ができていません");
+      return;
+    }
 
     try {
-      setBroadcasting(true);
-      setError('');
-
-      const hash = await executeBroadcastPermit(
-        address,
-        gatewayAddress,
-        parseJPYC(value),
-        BigInt(deadline),
-        permitData
-      );
-
-      setBroadcastTx(hash);
+      // 🚀 STEP 4: permit関数を呼び出してPermit実行
+      // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
       
-      // Allowance更新
-      setTimeout(() => {
-        fetchAllowance();
-      }, 2000);
+      // TODO：permit関数を呼び出してPermit実行しよう！
+      // ヒント: permit関数は以下の引数を受け取ります：
+      //   - 非同期なのでawaitを使用しよう！
+      //   - owner: 所有者アドレス (address)
+      //   - spender: 承認先アドレス (gatewayAddress as `0x${string}`)
+      //   - value: 承認額 (parseFloat(value) - 数値をそのまま渡すだけ！)
+      //   - deadline: 期限 (BigInt(deadline) as any)
+      //   - v, r, s: 署名データ (permitData.v, permitData.r, permitData.s)
+      // 完成版は ../react-sdk/PermitTab.tsx を参照してください
       
-    } catch (err: any) {
-      setError(err.message || 'Permit実行に失敗しました');
-    } finally {
-      setBroadcasting(false);
+      console.log("TODO: permit関数を実装してください");
+      console.log("所有者:", address);
+      console.log("承認先:", gatewayAddress);
+      console.log("承認額:", parseFloat(value));
+      console.log("期限:", deadline);
+      console.log("署名データ:", permitData);
+    } catch (err: unknown) {
+      console.error("Permit実行エラー:", err);
+      // エラーはusePermitのerror状態で自動管理される
     }
   };
 
@@ -116,8 +136,7 @@ export default function PermitTab() {
     setValue('');
     setDeadline('');
     setPermitData(null);
-    setBroadcastTx('');
-    setError('');
+    reset(); // React SDKの状態もリセット
   };
 
   // Approveタブに移動
@@ -144,8 +163,8 @@ export default function PermitTab() {
     <div className="space-y-6">
       {/* ヘッダー */}
       <div>
-        <h2 className="text-3xl font-bold text-gray-900">✍️ EIP-2612 Permit</h2>
-        <p className="text-gray-600 mt-2 text-lg">ガスレス許可設定 - オフチェーン署名学習</p>
+        <h2 className="text-3xl font-bold text-gray-900">✍️ EIP-2612 Permit (学習版)</h2>
+        <p className="text-gray-600 mt-2 text-lg">React SDKのusePermitフックを実装してガスレス許可設定してみよう</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -161,7 +180,7 @@ export default function PermitTab() {
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-purple-600">
-                    {formatJPYC(currentAllowance)}
+                    {currentAllowance.toLocaleString()}
                   </div>
                   <div className="text-sm text-purple-500">JPYC</div>
                 </div>
@@ -223,17 +242,10 @@ export default function PermitTab() {
               {/* 署名作成ボタン */}
               <button
                 onClick={handleCreateSignature}
-                disabled={!value || !deadline || loading || broadcasting}
+                disabled={!value || !deadline}
                 className="w-full px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    署名作成中...
-                  </div>
-                ) : (
-                  '✍️ Permit署名を作成'
-                )}
+                ✍️ Permit署名を作成
               </button>
             </div>
 
@@ -284,7 +296,7 @@ export default function PermitTab() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     onClick={handleBroadcastPermit}
-                    disabled={broadcasting}
+                    disabled={!isReady || broadcasting}
                     className="px-6 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {broadcasting ? (

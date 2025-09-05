@@ -1,70 +1,82 @@
 "use client";
 
-import { useAccount, useChainId } from 'wagmi';
-// TODO: React SDKのフックをインポートしてください
-// import { useBalanceOf, useTotalSupply } from '@jpyc/sdk-react';
-import { getJPYCAddress } from '@/lib/jpycClient';
+import { useAccount } from 'wagmi';
+// 📚 学習ガイド: JPYC React SDKを使った残高取得機能の実装
+// 
+// 🎯 目標: useBalanceOf/useTotalSupplyフックを使って、簡単に残高を取得しよう！
+//
+// TODO: 19行目と26行目でフックを呼び出して残高とTotal Supplyを取得しよう！
+// 
+// 📖 JPYC React SDKの手順:
+// 1. JPYC React SDKから必要なフックをインポート
+// 2. useBalanceOfフックでユーザーの残高を取得  
+// 3. useTotalSupplyフックでJPYCの総供給量を取得
+// 4. 取得したデータを表示用に変換
+
+// 🚀 STEP 1: JPYC React SDKから残高取得フックをインポート
+import { useBalanceOf, useTotalSupply } from '@jpyc/sdk-react';
 
 export default function BalanceTab() {
   const { address, isConnected } = useAccount();
-  const chainId = useChainId();
 
-  // TODO: 🎯 JPYC SDK核心部分1: useBalanceOfフックを使用してください
-  // const { 
-  //   data: balance, 
-  //   isPending: isBalanceLoading, 
-  //   error: balanceError 
-  // } = useBalanceOf({ 
-  //   account: address as `0x${string}`,
-  //   skip: !address || !isConnected
-  // });
+  // 🚀 STEP 2: useBalanceOfフックでユーザーの残高を取得
+  // TODO：useBalanceOfフックを呼び出してユーザーの残高を取得しよう！
+  //       nullになっているので、useBalanceOfフックを呼び出してください
+  // ヒント: useBalanceOfフックは以下の引数を受け取ります：
+  //   - account: ユーザーのアドレス (address as `0x${string}`)
+  // 完成版は ../react-sdk/BalanceTab.tsx を参照してください
 
-  // TODO: 🎯 JPYC SDK核心部分2: useTotalSupplyフックを使用してください
-  // const { 
-  //   data: totalSupply, 
-  //   isPending: isTotalSupplyLoading, 
-  //   error: totalSupplyError 
-  // } = useTotalSupply({
-  //   skip: !isConnected
-  // });
+  const { 
+    data: balance, 
+    isPending: isBalanceLoading, 
+    error: balanceError 
+  } = {
+    data: null,
+    isPending: false,
+    error: null
+  };
 
-  // 仮の状態（練習用）
-  const balance = '0';
-  const isBalanceLoading = false;
-  const balanceError = null;
-  const totalSupply = '0';
-  const isTotalSupplyLoading = false;
-  const totalSupplyError = null;
+  // 🚀 STEP 3: useTotalSupplyフックでJPYCの総供給量を取得
+  // TODO：useTotalSupplyフックを呼び出してJPYCの総供給量を取得しよう！
+  //       nullになっているので、useTotalSupplyフックを呼び出してください
+  // ヒント: useTotalSupplyフックは空のオブジェクト{}を渡します
+  // 完成版は ../react-sdk/BalanceTab.tsx を参照してください
+  
+  const totalSupplyResult = null;
 
-  // TODO: 状態を統合してください
-  // const isLoading = isBalanceLoading || isTotalSupplyLoading;
-  // const error = balanceError || totalSupplyError;
-  const isLoading = false;
-  const error = null;
+  const totalSupply = totalSupplyResult?.data;
+  const isTotalSupplyLoading = totalSupplyResult?.isPending || false;
+  const totalSupplyError = totalSupplyResult?.error;
 
-  // TODO: React SDKは文字列で返し、decimal変換済みです
-  // const formattedBalance = parseFloat(balance || '0');
-  // const formattedTotalSupply = parseFloat(totalSupply || '0');
-  const formattedBalance = 0;
-  const formattedTotalSupply = 0;
+  // ローディング状態とエラー状態を統合
+  const isLoading = isBalanceLoading || isTotalSupplyLoading;
+  const error = balanceError || totalSupplyError;
+
+  // 🚀 STEP 4: React SDKから取得したデータを表示用に変換
+  // SDKは文字列で返し、既にdecimal変換済み（例: "1000"）
+  const formattedBalance = parseFloat(balance || '0');
+  const formattedTotalSupply = parseFloat(totalSupply || '0');
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">JPYC残高確認 (Exercise)</h2>
-          <p className="text-gray-600 mt-2 text-lg">React SDKフックを実装して残高とTotal Supplyを表示してください</p>
+          <h2 className="text-3xl font-bold text-gray-900">JPYC残高確認 (学習版)</h2>
+          <p className="text-gray-600 mt-2 text-lg">React SDKフックを実装して残高とTotal Supplyを取得してみよう</p>
         </div>
-        <button
-          onClick={fetchBalance}
-          disabled={!isConnected || isLoading}
-          className="inline-flex items-center px-6 py-3 border border-blue-300 text-base font-medium rounded-xl text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-        >
-          <svg className={`w-5 h-5 mr-2 ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          {isLoading ? "更新中..." : "残高を更新"}
-        </button>
+        <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+          <span>学習版</span>
+          {isLoading && (
+            <div className="flex items-center ml-4">
+              <svg className="animate-spin w-4 h-4 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              自動更新中...
+            </div>
+          )}
+        </div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -264,89 +276,6 @@ export default function BalanceTab() {
           </p>
         </div>
       )}
-
-      {/* 学習ガイドパネル */}
-      <div className="bg-orange-50 border border-orange-200 rounded-2xl shadow-lg p-6">
-        <h4 className="text-lg font-semibold text-orange-900 mb-4">📚 実装ガイド</h4>
-        
-        <div className="space-y-4">
-          <div className="flex items-start">
-            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3 mt-0.5">
-              <span className="text-orange-600 font-bold text-sm">1</span>
-            </div>
-            <div>
-              <h5 className="font-medium text-gray-900 mb-1">フックをインポート</h5>
-              <div className="mt-2 p-2 bg-white rounded text-xs font-mono border">
-                import &#123; useBalanceOf, useTotalSupply &#125; from '@jpyc/sdk-react';
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-start">
-            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3 mt-0.5">
-              <span className="text-orange-600 font-bold text-sm">2</span>
-            </div>
-            <div>
-              <h5 className="font-medium text-gray-900 mb-1">useBalanceOfを使用</h5>
-              <div className="mt-2 p-2 bg-white rounded text-xs font-mono border">
-                const &#123; data: balance, isPending, error &#125; = useBalanceOf(&#123;<br/>
-                &nbsp;&nbsp;account: address as `0x$&#123;string&#125;`,<br/>
-                &nbsp;&nbsp;skip: !address || !isConnected<br/>
-                &#125;);
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-start">
-            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3 mt-0.5">
-              <span className="text-orange-600 font-bold text-sm">3</span>
-            </div>
-            <div>
-              <h5 className="font-medium text-gray-900 mb-1">useTotalSupplyを使用</h5>
-              <div className="mt-2 p-2 bg-white rounded text-xs font-mono border">
-                const &#123; data: totalSupply, isPending &#125; = useTotalSupply(&#123;<br/>
-                &nbsp;&nbsp;skip: !isConnected<br/>
-                &#125;);
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-start">
-            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3 mt-0.5">
-              <span className="text-green-600 font-bold text-sm">💡</span>
-            </div>
-            <div>
-              <h5 className="font-medium text-gray-900 mb-1">重要なポイント</h5>
-              <p className="text-sm text-gray-600">
-                React SDKは<strong>文字列</strong>でbalanceを返し、<strong>decimal変換済み</strong>です。<br/>
-                <code className="bg-gray-100 px-1 rounded">parseFloat(balance || '0')</code>で数値に変換してください。
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 p-4 bg-white border border-orange-200 rounded-lg">
-          <h5 className="font-medium text-orange-900 mb-2">実装状況</h5>
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span>useBalanceOfインポート:</span>
-              <span className="text-red-600">未実装</span>
-            </div>
-            <div className="flex justify-between">
-              <span>useTotalSupplyインポート:</span>
-              <span className="text-red-600">未実装</span>
-            </div>
-            <div className="flex justify-between">
-              <span>フック呼び出し:</span>
-              <span className="text-red-600">未実装</span>
-            </div>
-            <div className="flex justify-between">
-              <span>データ表示:</span>
-              <span className="text-red-600">未実装</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 } 

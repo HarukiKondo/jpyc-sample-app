@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useChainId } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { 
   useApprove, 
   useAllowance,
   useTransferWithAuthorization
 } from '@jpyc/sdk-react';
 import { 
-  getJPYCAddress, 
   getGatewayAddress, 
   generateOrderId,
   generateMetaHash,
@@ -61,7 +60,6 @@ interface Order {
 
 export default function PurchaseTab() {
   const { address, isConnected } = useAccount();
-  const chainId = useChainId();
   
   // State Machine
   const [state, setState] = useState<PurchaseState>('cartReview');

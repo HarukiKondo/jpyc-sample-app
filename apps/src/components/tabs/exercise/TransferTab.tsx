@@ -1,48 +1,45 @@
 "use client";
+// 📚 学習ガイド: JPYC React SDKを使った送金機能の実装
+// 
+// 🎯 目標: useTransferフックを使って、簡単にJPYC送金機能を実装しよう！
+//
+// TODO: 80行目からtransfer関数を呼び出して送金を実行しよう！
+// 
+// 📖 JPYC React SDKの手順:
+// 1. JPYC React SDKから必要なフックをインポート
+// 2. useTransferフックから送金機能と状態を取得  
+// 3. transfer関数を呼び出して送金を実行
+// 4. reset関数で状態をリセット
 
 import { useState } from "react";
-import { useAccount, useChainId } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { isAddress } from 'viem';
-// TODO: React SDKのuseTransferフックをインポートしてください
-// import { useTransfer } from '@jpyc/sdk-react';
-
-/**
- * 🎯 学習目標: React SDKの生フックを直接使用
- * 
- * JPYC SDKの本質的な使い方を学習します：
- * 1. React SDKフックのインポート
- * 2. フックの呼び出しと状態取得
- * 3. transfer関数の実行
- * 
- * 💡 ポイント: React SDK提供のフックを直接使用してオンチェーン操作を体験
- */
+// 🚀 STEP 1: JPYC React SDKからuseTransferフックをインポート
+import { useTransfer } from '@jpyc/sdk-react';
 
 export default function TransferTab() {
-  const { address, isConnected } = useAccount();
-  const chainId = useChainId();
+  const { isConnected } = useAccount();
   
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
-
-  // TODO: React SDKのuseTransferフックを使用してください
-  // const { 
-  //   transfer, 
-  //   isReady, 
-  //   isLoading, 
-  //   isSuccess, 
-  //   error, 
-  //   hash, 
-  //   reset 
-  // } = useTransfer();
-
-  // 仮の状態（練習用）
-  const transfer = null;
-  const isReady = false;
-  const isLoading = false;
-  const isSuccess = false;
-  const error = null;
-  const hash = null;
-  const reset = () => {};
+  
+  // 🚀 STEP 2: useTransferフックから必要な機能と状態を取得
+  // transfer: 送金実行関数
+  // isReady: SDK準備完了状態
+  // isLoading: トランザクション実行中状態
+  // isSuccess: 送金成功状態
+  // error: エラー情報
+  // hash: トランザクションハッシュ
+  // reset: 状態リセット関数
+  const { 
+    transfer, 
+    isReady, 
+    isLoading, 
+    isSuccess, 
+    error, 
+    hash, 
+    reset 
+  } = useTransfer();
 
   const handleTransfer = async () => {
     if (!isConnected) {
@@ -51,7 +48,7 @@ export default function TransferTab() {
     }
 
     if (!recipient || !amount) {
-      alert("送信先アドレスと金額を入力してください");
+      alert("送金先アドレスと金額を入力してください");
       return;
     }
 
@@ -66,52 +63,51 @@ export default function TransferTab() {
       return;
     }
 
+    if (!transfer) {
+      alert("Transfer機能の準備ができていません");
+      return;
+    }
+
     try {
-      setIsPending(true);
-      setError(null);
-      
-      // aliased jpycClient の executeTransfer を使用
-      const amountWei = parseJPYC(amount);
-      const txHash = await executeTransfer(recipient as `0x${string}`, amountWei);
-      
-      setHash(txHash);
-      setIsPending(false);
-      setIsConfirming(true);
-      
-      // 簡易的な成功判定（実際のプロジェクトではwaitForTransactionReceiptを使用）
-      setTimeout(() => {
-        setIsConfirming(false);
-        setIsSuccess(true);
-      }, 3000);
-      
-    } catch (err: any) {
-      console.error("送信エラー:", err);
-      setError(err.message || "送信に失敗しました");
-      setIsPending(false);
-      setIsConfirming(false);
+      // 🚀 STEP 3: transfer関数を呼び出して送金実行
+      // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
+      // ✅ 状態管理（loading, success, error）も自動
+
+      // TODO：transfer関数を呼び出して送金を実行しよう！
+      // ヒント: transfer関数は以下の引数を受け取ります：
+      //   - 非同期なのでawaitを使用しよう！
+      //   - to: 送金先アドレス (recipient as `0x${string}`)
+      //   - value: 送金額 (amountNum - 数値をそのまま渡すだけ！)
+      // 完成版は ../react-sdk/TransferTab.tsx を参照してください
+
+    } catch (err: unknown) {
+      console.error("送金エラー:", err);
+      // エラーはuseTransferのerror状態で自動管理される
     }
   };
 
   const resetForm = () => {
     setRecipient("");
     setAmount("");
+    // 🚀 STEP 4: reset関数でReact SDKの状態をリセット
+    reset(); // isLoading, isSuccess, error, hash をクリア
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">JPYC送信</h2>
-          <p className="text-gray-600 mt-1">指定したアドレスにJPYCを送信します</p>
+          <h2 className="text-2xl font-bold text-gray-900">JPYC送金 (React SDK)</h2>
+          <p className="text-gray-600 mt-1">React SDKのuseTransferフックを使用した送金</p>
         </div>
         <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <div className="w-3 h-3 bg-warning-500 rounded-full"></div>
-          <span>基本送信機能</span>
+          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+          <span>React SDK版</span>
         </div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* メイン送信フォーム */}
+        {/* メイン送金フォーム */}
         <div className="lg:col-span-2">
           <div className="bg-white border border-gray-200 rounded-2xl shadow-soft p-6">
             <div className="flex items-center mb-6">
@@ -121,15 +117,15 @@ export default function TransferTab() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">送信フォーム</h3>
-                <p className="text-sm text-gray-600">ERC20 Transfer 操作</p>
+                <h3 className="text-lg font-semibold text-gray-900">React SDK送金フォーム</h3>
+                <p className="text-sm text-gray-600">useTransfer() フック使用</p>
               </div>
             </div>
 
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  送信先アドレス
+                  送金先アドレス
                 </label>
                 <div className="relative">
                   <input
@@ -138,7 +134,7 @@ export default function TransferTab() {
                     onChange={(e) => setRecipient(e.target.value)}
                     placeholder="0x..."
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm transition-all duration-200"
-                    disabled={isPending || isConfirming}
+                    disabled={isLoading}
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,7 +147,7 @@ export default function TransferTab() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  送信額 (JPYC)
+                  送金額 (JPYC)
                 </label>
                 <div className="relative">
                   <input
@@ -159,39 +155,33 @@ export default function TransferTab() {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="100"
-                    step="0.000001"
                     min="0"
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    disabled={isPending || isConfirming}
+                    disabled={isLoading}
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                     <span className="text-gray-500 text-sm font-medium">JPYC</span>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">送信したい金額を入力してください</p>
+                <p className="text-xs text-gray-500 mt-1">送金したい金額を入力してください</p>
               </div>
 
               <button
                 onClick={handleTransfer}
-                disabled={!isConnected || isPending || isConfirming || !recipient || !amount}
-                className="w-full px-6 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                disabled={!isConnected || !isReady || isLoading || !recipient || !amount}
+                className="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
               >
-                {isPending ? (
+                {isLoading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    署名待ち...
-                  </div>
-                ) : isConfirming ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    送信処理中...
+                    送金処理中...
                   </div>
                 ) : (
                   <div className="flex items-center justify-center">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
-                    送信実行
+                    送金実行
                   </div>
                 )}
               </button>
@@ -206,8 +196,8 @@ export default function TransferTab() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-red-900">送信エラー</h4>
-                    <p className="text-sm text-red-700 mt-1">{error}</p>
+                    <h4 className="font-semibold text-red-900">React SDK送金エラー</h4>
+                    <p className="text-sm text-red-700 mt-1">{error?.message || 'エラーが発生しました'}</p>
                   </div>
                 </div>
               </div>
@@ -227,7 +217,7 @@ export default function TransferTab() {
                   </div>
                   <div className="flex-1">
                     <h4 className="font-semibold text-green-900">
-                      {isConfirming ? "送信処理中..." : isSuccess ? "送信完了!" : "送信中..."}
+                      {isLoading ? "送金処理中..." : isSuccess ? "送金完了!" : "送金中..."}
                     </h4>
                     <p className="text-sm text-green-700 mt-1">
                       トランザクションハッシュ:
@@ -240,7 +230,7 @@ export default function TransferTab() {
                         onClick={resetForm}
                         className="mt-3 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
                       >
-                        新しい送信
+                        新しい送金
                       </button>
                     )}
                   </div>
@@ -253,7 +243,7 @@ export default function TransferTab() {
         {/* サイドバー情報 */}
         <div className="space-y-4">
           <div className="bg-white border border-gray-200 rounded-2xl shadow-soft p-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">送信について</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">React SDK について</h4>
             
             <div className="space-y-4">
               <div className="flex items-start">
@@ -263,10 +253,10 @@ export default function TransferTab() {
                   </svg>
                 </div>
                 <div>
-                  <h5 className="font-medium text-gray-900 mb-1">基本送信</h5>
+                  <h5 className="font-medium text-gray-900 mb-1">フックベース送金</h5>
                   <p className="text-sm text-gray-600">
-                    ERC20の<code className="bg-gray-100 px-1 rounded text-xs">transfer</code>関数を使用した
-                    シンプルな送信です。
+                    <code className="bg-gray-100 px-1 rounded text-xs">useTransfer()</code>フックで
+                    状態管理が自動化されています。
                   </p>
                 </div>
               </div>
@@ -278,9 +268,9 @@ export default function TransferTab() {
                   </svg>
                 </div>
                 <div>
-                  <h5 className="font-medium text-gray-900 mb-1">注意事項</h5>
+                  <h5 className="font-medium text-gray-900 mb-1">Decimal自動変換</h5>
                   <p className="text-sm text-gray-600">
-                    これは「購入」ではありません。注文IDとは紐付かない基本的な送信操作です。
+                    入力値をそのまま渡すだけで、内部で10^18の変換が行われます。
                   </p>
                 </div>
               </div>
@@ -297,11 +287,41 @@ export default function TransferTab() {
                 </div>
                 <h5 className="font-medium text-gray-900 mb-1">ウォレット未接続</h5>
                 <p className="text-sm text-gray-600">
-                  送信を行うには、まずウォレットを接続してください。
+                  送金を行うには、まずウォレットを接続してください。
                 </p>
               </div>
             </div>
           )}
+
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+            <h5 className="font-medium text-blue-900 mb-2">React SDK状態管理</h5>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>isReady:</span>
+                <span className={isReady ? "text-green-600" : "text-red-600"}>
+                  {isReady ? "✓" : "✗"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>isLoading:</span>
+                <span className={isLoading ? "text-orange-600" : "text-gray-600"}>
+                  {isLoading ? "✓" : "✗"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>isSuccess:</span>
+                <span className={isSuccess ? "text-green-600" : "text-gray-600"}>
+                  {isSuccess ? "✓" : "✗"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>hasError:</span>
+                <span className={error ? "text-red-600" : "text-gray-600"}>
+                  {error ? "✓" : "✗"}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

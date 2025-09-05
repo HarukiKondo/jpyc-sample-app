@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAccount } from "wagmi";
+// 🚀 STEP 1: JPYC React SDKからAuthorization関連フックをインポート
 import { 
   useTransferWithAuthorization, 
   useReceiveWithAuthorization,
@@ -37,19 +38,21 @@ export default function AuthorizationTab() {
   const [durationMinutes, setDurationMinutes] = useState("60");
   const [isLoadingSignature, setIsLoadingSignature] = useState(false);
 
-  // React SDKフックを使用
+  // 🚀 STEP 2: EIP-3009 Authorization関連フックを取得
+  // Transfer with Authorization（送金承認）
   const { 
-    transferWithAuthorization, 
-    isReady: isTransferReady, 
-    isLoading: isTransferLoading, 
-    isSuccess: isTransferSuccess, 
-    error: transferError, 
-    hash: transferHash, 
-    reset: resetTransfer 
+    transferWithAuthorization,  // 送金承認実行関数
+    isReady: isTransferReady,   // SDK準備完了状態
+    isLoading: isTransferLoading, // 実行中状態
+    isSuccess: isTransferSuccess, // 成功状態
+    error: transferError,       // エラー情報
+    hash: transferHash,         // トランザクションハッシュ
+    reset: resetTransfer        // 状態リセット関数
   } = useTransferWithAuthorization();
 
+  // Receive with Authorization（受取承認）
   const { 
-    receiveWithAuthorization, 
+    receiveWithAuthorization,   // 受取承認実行関数
     isReady: isReceiveReady, 
     isLoading: isReceiveLoading, 
     isSuccess: isReceiveSuccess, 
@@ -58,8 +61,9 @@ export default function AuthorizationTab() {
     reset: resetReceive 
   } = useReceiveWithAuthorization();
 
+  // Cancel Authorization（承認キャンセル）
   const { 
-    cancelAuthorization, 
+    cancelAuthorization,        // キャンセル実行関数
     isReady: isCancelReady, 
     isLoading: isCancelLoading, 
     isSuccess: isCancelSuccess, 
@@ -230,11 +234,13 @@ export default function AuthorizationTab() {
     }
 
     try {
+      // 🚀 STEP 3: 選択されたモードに応じてReact SDK関数を実行
       if (activeMode === 'transfer' && signature && transferWithAuthorization) {
+        // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
         await transferWithAuthorization({
           from: address,
           to: toAddress as `0x${string}`,
-          value: parseFloat(amount), // React SDKは数値をそのまま渡す
+          value: parseFloat(amount), // 例: 100 → 内部で 100 * 10^18 に変換される
           validAfter: signature.validAfter as any, // Uint256型に変換
           validBefore: signature.validBefore as any, // Uint256型に変換
           nonce: signature.nonce as any, // Bytes32型に変換
@@ -244,6 +250,7 @@ export default function AuthorizationTab() {
         });
 
       } else if (activeMode === 'receive' && signature && receiveWithAuthorization) {
+        // ✅ 受取承認の実行（受信者のみ実行可能）
         await receiveWithAuthorization({
           from: originalFromAddress as `0x${string}`, // 署名時の送信者アドレスを使用
           to: address,
@@ -257,6 +264,7 @@ export default function AuthorizationTab() {
         });
 
       } else if (activeMode === 'cancel' && cancelSignature && cancelAuthorization) {
+        // ✅ 承認のキャンセル実行
         await cancelAuthorization({
           authorizer: authorizerAddress as `0x${string}`,
           nonce: cancelNonce as any, // Bytes32型に変換

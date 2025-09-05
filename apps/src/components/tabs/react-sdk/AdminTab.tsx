@@ -337,7 +337,7 @@ export default function AdminTab() {
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">👨‍💼 Admin Dashboardjijijiiji</h2>
+          <h2 className="text-3xl font-bold text-gray-900">👨‍💼 Admin Dashboard</h2>
           <p className="text-gray-600 mt-2 text-lg">Merchant宛JPYC受信履歴</p>
         </div>
         <button

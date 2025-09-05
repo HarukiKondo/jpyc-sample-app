@@ -1,34 +1,37 @@
 "use client";
 
 import { useAccount } from 'wagmi';
+// 🚀 STEP 1: JPYC React SDKから残高取得フックをインポート
 import { useBalanceOf, useTotalSupply } from '@jpyc/sdk-react';
 
 export default function BalanceTab() {
   const { address, isConnected } = useAccount();
 
-  // React SDKフックを使用（decimal変換は自動）
+  // 🚀 STEP 2: useBalanceOfフックでユーザーの残高を取得
+  // data: 残高データ（文字列、decimal変換済み）
+  // isPending: データ取得中の状態
+  // error: エラー情報
   const { 
     data: balance, 
     isPending: isBalanceLoading, 
     error: balanceError 
   } = useBalanceOf({ 
-    account: (address || '0x0000000000000000000000000000000000000000') as `0x${string}`,
-    skip: !address || !isConnected
+    account: address as `0x${string}`
   });
 
-  const { 
-    data: totalSupply, 
-    isPending: isTotalSupplyLoading, 
-    error: totalSupplyError 
-  } = useTotalSupply({
-    skip: !isConnected
-  });
+  // 🚀 STEP 3: useTotalSupplyフックでJPYCの総供給量を取得
+  const totalSupplyResult = useTotalSupply({});
+  
+  const totalSupply = totalSupplyResult?.data;
+  const isTotalSupplyLoading = totalSupplyResult?.isPending || false;
+  const totalSupplyError = totalSupplyResult?.error;
 
   // ローディング状態とエラー状態を統合
   const isLoading = isBalanceLoading || isTotalSupplyLoading;
   const error = balanceError || totalSupplyError;
 
-  // React SDKは文字列で返し、自動でdecimal変換済み
+  // 🚀 STEP 4: React SDKから取得したデータを表示用に変換
+  // SDKは文字列で返し、既にdecimal変換済み（例: "1000"）
   const formattedBalance = parseFloat(balance || '0');
   const formattedTotalSupply = parseFloat(totalSupply || '0');
 

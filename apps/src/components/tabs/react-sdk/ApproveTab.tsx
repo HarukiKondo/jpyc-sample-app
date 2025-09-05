@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
+// 🚀 STEP 1: JPYC React SDKからApprove関連フックをインポート
 import { useApprove, useAllowance } from '@jpyc/sdk-react';
 import { getGatewayAddress } from '@/lib/jpycClient';
 
@@ -14,26 +15,25 @@ export default function ApproveTab() {
   // アドレス取得
   const gatewayAddress = getGatewayAddress();
 
-  // React SDKフックを使用
+  // 🚀 STEP 2: useApproveフックでApprove機能と状態を取得
   const { 
-    approve, 
-    isReady, 
-    isLoading, 
-    isSuccess, 
-    error, 
-    hash, 
-    reset 
+    approve,    // Approve実行関数
+    isReady,    // SDK準備完了状態
+    isLoading,  // トランザクション実行中状態
+    isSuccess,  // Approve成功状態
+    error,      // エラー情報
+    hash,       // トランザクションハッシュ
+    reset       // 状態リセット関数
   } = useApprove();
 
-  // Allowance取得（React SDKフック）
+  // 🚀 STEP 3: useAllowanceフックで現在の許可額を取得
   const { 
-    data: currentAllowanceStr, 
-    isPending: loadingAllowance, 
-    error: allowanceError 
+    data: currentAllowanceStr,  // 許可額（文字列、decimal変換済み）
+    isPending: loadingAllowance, // データ取得中状態
+    error: allowanceError       // エラー情報
   } = useAllowance({
-    owner: (address || '0x0000000000000000000000000000000000000000') as `0x${string}`,
-    spender: gatewayAddress as `0x${string}`,
-    skip: !address || !isConnected
+    owner: address as `0x${string}`,
+    spender: gatewayAddress as `0x${string}`
   });
 
   // React SDKは文字列で返すため、数値に変換
@@ -63,14 +63,15 @@ export default function ApproveTab() {
     }
 
     try {
-      // React SDKでは値をそのまま渡す（内部でdecimal処理される）
+      // 🚀 STEP 4: approve関数を呼び出してApprove実行
+      // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
       await approve({
         spender: gatewayAddress as `0x${string}`,
-        value: amountNum // 例：10000 をそのまま渡す
+        value: amountNum // 例：10000 → 内部で 10000 * 10^18 に変換される
       });
     } catch (err: any) {
       console.error("Approve エラー:", err);
-      // エラーはuseApproveのerror状態で管理される
+      // エラーはuseApproveのerror状態で自動管理される
     }
   };
 

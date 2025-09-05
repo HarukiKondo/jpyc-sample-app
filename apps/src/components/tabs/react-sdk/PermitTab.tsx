@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
+// 🚀 STEP 1: JPYC React SDKからPermit関連フックをインポート
 import { usePermit, useAllowance } from '@jpyc/sdk-react';
 import { 
   getGatewayAddress,
@@ -19,26 +20,25 @@ export default function PermitTab() {
   // アドレス取得
   const gatewayAddress = getGatewayAddress();
 
-  // React SDKフックを使用
+  // 🚀 STEP 2: usePermitフックでPermit機能と状態を取得
   const { 
-    permit, 
-    isReady, 
-    isLoading: broadcasting, 
-    isSuccess, 
-    error: permitError, 
-    hash: broadcastTx, 
-    reset 
+    permit,                    // Permit実行関数
+    isReady,                   // SDK準備完了状態
+    isLoading: broadcasting,   // トランザクション実行中状態
+    isSuccess,                 // Permit成功状態
+    error: permitError,        // エラー情報
+    hash: broadcastTx,         // トランザクションハッシュ
+    reset                      // 状態リセット関数
   } = usePermit();
 
-  // Allowance取得（React SDKフック）
+  // 🚀 STEP 3: useAllowanceフックで現在の許可額を取得
   const { 
-    data: currentAllowanceStr, 
-    isPending: loadingAllowance, 
-    error: allowanceError 
+    data: currentAllowanceStr,  // 許可額（文字列、decimal変換済み）
+    isPending: loadingAllowance, // データ取得中状態
+    error: allowanceError       // エラー情報
   } = useAllowance({
     owner: address as `0x${string}`,
-    spender: gatewayAddress as `0x${string}`,
-    skip: !address || !isConnected
+    spender: gatewayAddress as `0x${string}`
   });
 
   const currentAllowance = parseFloat(currentAllowanceStr || '0');
@@ -90,11 +90,12 @@ export default function PermitTab() {
     }
 
     try {
-      // React SDKでは値をそのまま渡す（内部でdecimal処理される）
+      // 🚀 STEP 4: permit関数を呼び出してPermit実行
+      // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
       await permit({
         owner: address,
         spender: gatewayAddress as `0x${string}`,
-        value: parseFloat(value), // React SDKは数値で受け取る
+        value: parseFloat(value), // 例: 100 → 内部で 100 * 10^18 に変換される
         deadline: BigInt(deadline) as any, // Uint256型に変換
         v: permitData.v as any, // Uint8型に変換
         r: permitData.r as any, // Bytes32型に変換
@@ -102,7 +103,7 @@ export default function PermitTab() {
       });
     } catch (err: any) {
       console.error("Permit実行エラー:", err);
-      // エラーはusePermitのerror状態で管理される
+      // エラーはusePermitのerror状態で自動管理される
     }
   };
 

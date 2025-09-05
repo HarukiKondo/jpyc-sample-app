@@ -1,18 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount, useChainId } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { isAddress } from 'viem';
+// 🚀 STEP 1: JPYC React SDKからuseTransferフックをインポート
 import { useTransfer } from '@jpyc/sdk-react';
 
 export default function TransferTab() {
-  const { address, isConnected } = useAccount();
-  const chainId = useChainId();
+  const { isConnected } = useAccount();
   
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
   
-  // 🎯 JPYC SDK: たった1行でフック取得！
+  // 🚀 STEP 2: useTransferフックから必要な機能と状態を取得
+  // transfer: 送金実行関数
+  // isReady: SDK準備完了状態
+  // isLoading: トランザクション実行中状態
+  // isSuccess: 送金成功状態
+  // error: エラー情報
+  // hash: トランザクションハッシュ
+  // reset: 状態リセット関数
   const { 
     transfer, 
     isReady, 
@@ -51,21 +58,24 @@ export default function TransferTab() {
     }
 
     try {
-      // 🚀 JPYC SDK: たった1行で送金実行！
+      // 🚀 STEP 3: transfer関数を呼び出して送金実行
+      // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
+      // ✅ 状態管理（loading, success, error）も自動
       await transfer({
         to: recipient as `0x${string}`,
-        value: amountNum // 数値をそのまま渡すだけ（decimal変換は自動）
+        value: amountNum // 例: 100 → 内部で 100 * 10^18 に変換される
       });
     } catch (err: any) {
       console.error("送金エラー:", err);
-      // エラーはuseTransferのerror状態で管理される
+      // エラーはuseTransferのerror状態で自動管理される
     }
   };
 
   const resetForm = () => {
     setRecipient("");
     setAmount("");
-    reset(); // React SDKの状態もリセット
+    // 🚀 STEP 4: reset関数でReact SDKの状態をリセット
+    reset(); // isLoading, isSuccess, error, hash をクリア
   };
 
   return (
@@ -130,7 +140,6 @@ export default function TransferTab() {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="100"
-                    step="0.000001"
                     min="0"
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     disabled={isLoading}
