@@ -15,7 +15,7 @@ import { useAccount } from 'wagmi';
 // 4. useAllowanceフックで現在の許可額を取得
 
 // 🚀 STEP 1: JPYC React SDKからPermit関連フックをインポート
-import { usePermit, useAllowance } from '@jpyc/sdk-react';
+import { usePermit, useAllowance, type AddressString } from '@jpyc/sdk-react';
 import { 
   getGatewayAddress,
   createPermitSignature
@@ -31,6 +31,9 @@ export default function PermitTab() {
     v: number;
     r: `0x${string}`;
     s: `0x${string}`;
+    domain?: unknown;
+    types?: unknown;
+    message?: unknown;
   } | null>(null);
 
   // アドレス取得
@@ -53,8 +56,8 @@ export default function PermitTab() {
     isPending: loadingAllowance, // データ取得中状態
     error: allowanceError       // エラー情報
   } = useAllowance({
-    owner: address as `0x${string}`,
-    spender: gatewayAddress as `0x${string}`,
+    owner: address as AddressString,
+    spender: gatewayAddress as AddressString
   });
 
   const currentAllowance = parseFloat(currentAllowanceStr || '0');
@@ -78,7 +81,6 @@ export default function PermitTab() {
       setPermitData(null);
 
       // createPermitSignature関数はbigint（wei単位）を期待するため、parseJPYCを使用
-      const valueNum = parseFloat(value);
       const { parseJPYC } = await import('@/lib/jpycClient');
       const valueInWei = parseJPYC(value); // 正しいdecimal変換を使用
       const deadlineBigInt = BigInt(deadline);
@@ -90,11 +92,18 @@ export default function PermitTab() {
         deadlineBigInt
       );
 
-      setPermitData(signature);
+      // 型変換してsetState
+      setPermitData({
+        v: Number(signature.v),
+        r: signature.r,
+        s: signature.s,
+        domain: signature.domain,
+        types: signature.types,
+        message: signature.message
+      });
       
     } catch (err: unknown) {
       console.error('Permit署名作成エラー:', err);
-      alert(err.message || 'Permit署名の作成に失敗しました');
     }
   };
 
@@ -113,7 +122,7 @@ export default function PermitTab() {
       // ヒント: permit関数は以下の引数を受け取ります：
       //   - 非同期なのでawaitを使用しよう！
       //   - owner: 所有者アドレス (address)
-      //   - spender: 承認先アドレス (gatewayAddress as `0x${string}`)
+      //   - spender: 承認先アドレス (gatewayAddress as AddressString)
       //   - value: 承認額 (parseFloat(value) - 数値をそのまま渡すだけ！)
       //   - deadline: 期限 (BigInt(deadline) as any)
       //   - v, r, s: 署名データ (permitData.v, permitData.r, permitData.s)

@@ -18,7 +18,8 @@ import { useAccount } from "wagmi";
 import { 
   useTransferWithAuthorization, 
   useReceiveWithAuthorization,
-  useCancelAuthorization
+  useCancelAuthorization,
+  type AddressString
 } from '@jpyc/sdk-react';
 import { 
   createTransferWithAuthorizationSignature,
@@ -33,12 +34,12 @@ type AuthMode = 'transfer' | 'receive' | 'cancel';
 
 interface AuthSignature {
   v: number;
-  r: `0x${string}`;
-  s: `0x${string}`;
-  nonce: `0x${string}`;
+  r: AddressString;
+  s: AddressString;
+  nonce: AddressString;
   validAfter: bigint;
   validBefore: bigint;
-  hash: `0x${string}`;
+  hash: AddressString;
 }
 
 export default function AuthorizationTab() {
@@ -99,9 +100,9 @@ export default function AuthorizationTab() {
   const [authorizerAddress, setAuthorizerAddress] = useState("");
   const [cancelSignature, setCancelSignature] = useState<{
     v: number;
-    r: `0x${string}`;
-    s: `0x${string}`;
-    hash: `0x${string}`;
+    r: AddressString;
+    s: AddressString;
+    hash: AddressString;
   } | null>(null);
 
   const modes = [
@@ -162,7 +163,7 @@ export default function AuthorizationTab() {
 
         const sig = await createTransferWithAuthorizationSignature(
           address,
-          toAddress as `0x${string}`,
+          toAddress as AddressString,
           value,
           validAfter,
           validBefore,
@@ -176,7 +177,7 @@ export default function AuthorizationTab() {
           nonce,
           validAfter,
           validBefore,
-          hash: sig.hash
+          hash: sig.signature as AddressString
         });
 
       } else if (activeMode === 'receive') {
@@ -192,7 +193,7 @@ export default function AuthorizationTab() {
 
         const sig = await createReceiveWithAuthorizationSignature(
           address,
-          toAddress as `0x${string}`,
+          toAddress as AddressString,
           value,
           validAfter,
           validBefore,
@@ -206,7 +207,7 @@ export default function AuthorizationTab() {
           nonce,
           validAfter,
           validBefore,
-          hash: sig.hash
+          hash: sig.signature as AddressString
         });
         
         // 署名作成時の送信者アドレスを保存
@@ -219,15 +220,15 @@ export default function AuthorizationTab() {
         }
 
         const sig = await createCancelAuthorizationSignature(
-          authorizerAddress as `0x${string}`,
-          cancelNonce as `0x${string}`
+          authorizerAddress as AddressString,
+          cancelNonce as AddressString
         );
 
         setCancelSignature({
           v: sig.v,
           r: sig.r,
           s: sig.s,
-          hash: sig.hash
+          hash: sig.signature as AddressString
         });
       }
 
@@ -252,7 +253,7 @@ export default function AuthorizationTab() {
         // ヒント: transferWithAuthorization関数は以下の引数を受け取ります：
         //   - 非同期なのでawaitを使用しよう！
         //   - from: 送信者アドレス (address)
-        //   - to: 受信者アドレス (toAddress as `0x${string}`)
+        //   - to: 受信者アドレス (toAddress as AddressString)
         //   - value: 送信額 (parseFloat(amount) - 数値をそのまま渡すだけ！)
         //   - validAfter, validBefore, nonce, v, r, s: 署名データ
         // 完成版は ../react-sdk/AuthorizationTab.tsx を参照してください
@@ -267,7 +268,7 @@ export default function AuthorizationTab() {
         // TODO：receiveWithAuthorization関数を呼び出して受取承認実行しよう！
         // ヒント: receiveWithAuthorization関数は以下の引数を受け取ります：
         //   - 非同期なのでawaitを使用しよう！
-        //   - from: 送信者アドレス (originalFromAddress as `0x${string}`)
+        //   - from: 送信者アドレス (originalFromAddress as AddressString)
         //   - to: 受信者アドレス (address)
         //   - value: 送信額 (parseFloat(amount))
         //   - validAfter, validBefore, nonce, v, r, s: 署名データ
@@ -283,7 +284,7 @@ export default function AuthorizationTab() {
         // TODO：cancelAuthorization関数を呼び出して承認キャンセル実行しよう！
         // ヒント: cancelAuthorization関数は以下の引数を受け取ります：
         //   - 非同期なのでawaitを使用しよう！
-        //   - authorizer: 認証者アドレス (authorizerAddress as `0x${string}`)
+        //   - authorizer: 認証者アドレス (authorizerAddress as AddressString)
         //   - nonce: キャンセル対象のnonce (cancelNonce as any)
         //   - v, r, s: 署名データ
         // 完成版は ../react-sdk/AuthorizationTab.tsx を参照してください

@@ -14,7 +14,7 @@ import { useAccount } from 'wagmi';
 // 4. 取得したデータを表示用に変換
 
 // 🚀 STEP 1: JPYC React SDKから残高取得フックをインポート
-import { useBalanceOf, useTotalSupply } from '@jpyc/sdk-react';
+import { useBalanceOf, useTotalSupply, type AddressString } from '@jpyc/sdk-react';
 
 export default function BalanceTab() {
   const { address, isConnected } = useAccount();
@@ -23,7 +23,7 @@ export default function BalanceTab() {
   // TODO：useBalanceOfフックを呼び出してユーザーの残高を取得しよう！
   //       nullになっているので、useBalanceOfフックを呼び出してください
   // ヒント: useBalanceOfフックは以下の引数を受け取ります：
-  //   - account: ユーザーのアドレス (address as `0x${string}`)
+  //   - account: ユーザーのアドレス (address as AddressString)
   // 完成版は ../react-sdk/BalanceTab.tsx を参照してください
 
   const { 

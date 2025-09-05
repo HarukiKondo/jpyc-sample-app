@@ -15,7 +15,7 @@ import { useState } from "react";
 import { useAccount } from 'wagmi';
 import { isAddress } from 'viem';
 // 🚀 STEP 1: JPYC React SDKからuseTransferフックをインポート
-import { useTransfer } from '@jpyc/sdk-react';
+import { useTransfer, type AddressString } from '@jpyc/sdk-react';
 
 export default function TransferTab() {
   const { isConnected } = useAccount();
@@ -76,7 +76,7 @@ export default function TransferTab() {
       // TODO：transfer関数を呼び出して送信を実行しよう！
       // ヒント: transfer関数は以下の引数を受け取ります：
       //   - 非同期なのでawaitを使用しよう！
-      //   - to: 送信先アドレス (recipient as `0x${string}`)
+      //   - to: 送信先アドレス (recipient as AddressString)
       //   - value: 送信額 (amountNum - 数値をそのまま渡すだけ！)
       // 完成版は ../react-sdk/TransferTab.tsx を参照してください
 
