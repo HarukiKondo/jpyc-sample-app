@@ -6,7 +6,7 @@ import { useAccount } from 'wagmi';
 // 
 // 🎯 目標: usePermitフックを使って、簡単にPermit機能を実装しよう！
 //
-// TODO: 96行目からpermit関数を呼び出してPermit実行しよう！
+// TODO: STEP 4でpermit関数を呼び出してPermit実行しよう！
 // 
 // 📖 JPYC React SDKの手順:
 // 1. JPYC React SDKから必要なフックをインポート
@@ -114,24 +114,19 @@ export default function PermitTab() {
       return;
     }
 
-    try {
-      // 🚀 STEP 4: permit関数を呼び出してPermit実行
-      // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
+    // 🚀 STEP 4: permit関数を呼び出してPermit実行
+    // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
+    
+    // TODO：permit関数を呼び出してPermit実行しよう！
+    // ヒント: permit関数は以下の引数を受け取ります：
+    //   - 非同期なのでawaitを使用しよう！
+    //   - owner: 所有者アドレス (address)
+    //   - spender: 承認先アドレス (gatewayAddress as AddressString)
+    //   - value: 承認額 (parseFloat(value) - 数値をそのまま渡すだけ！)
+    //   - deadline: 期限 (BigInt(deadline) as any)
+    //   - v, r, s: 署名データ (permitData.v, permitData.r, permitData.s)
+    // 完成版は ../react-sdk/PermitTab.tsx を参照してください
       
-      // TODO：permit関数を呼び出してPermit実行しよう！
-      // ヒント: permit関数は以下の引数を受け取ります：
-      //   - 非同期なのでawaitを使用しよう！
-      //   - owner: 所有者アドレス (address)
-      //   - spender: 承認先アドレス (gatewayAddress as AddressString)
-      //   - value: 承認額 (parseFloat(value) - 数値をそのまま渡すだけ！)
-      //   - deadline: 期限 (BigInt(deadline) as any)
-      //   - v, r, s: 署名データ (permitData.v, permitData.r, permitData.s)
-      // 完成版は ../react-sdk/PermitTab.tsx を参照してください
-      
-    } catch (err: unknown) {
-      console.error("Permit実行エラー:", err);
-      // エラーはusePermitのerror状態で自動管理される
-    }
   };
 
   // リセット

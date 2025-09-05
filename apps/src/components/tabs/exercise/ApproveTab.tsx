@@ -6,7 +6,7 @@ import { useAccount } from 'wagmi';
 // 
 // 🎯 目標: useApproveフックを使って、簡単にApprove機能を実装しよう！
 //
-// TODO: 69行目からapprove関数を呼び出してApprove実行しよう！
+// TODO: STEP 4でapprove関数を呼び出してApprove実行しよう！
 // 
 // 📖 JPYC React SDKの手順:
 // 1. JPYC React SDKから必要なフックをインポート
@@ -74,21 +74,16 @@ export default function ApproveTab() {
       return;
     }
 
-    try {
-      // 🚀 STEP 4: approve関数を呼び出してApprove実行
-      // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
-      
-      // TODO：approve関数を呼び出してApprove実行しよう！
-      // ヒント: approve関数は以下の引数を受け取ります：
-      //   - 非同期なのでawaitを使用しよう！
-      //   - spender: 承認先アドレス (gatewayAddress as AddressString)
-      //   - value: 承認額 (amountNum - 数値をそのまま渡すだけ！)
-      // 完成版は ../react-sdk/ApproveTab.tsx を参照してください
-      
-    } catch (err: unknown) {
-      console.error("Approve エラー:", err);
-      // エラーはuseApproveのerror状態で自動管理される
-    }
+    // 🚀 STEP 4: approve関数を呼び出してApprove実行
+    // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
+    
+    // TODO：approve関数を呼び出してApprove実行しよう！
+    // ヒント: approve関数は以下の引数を受け取ります：
+    //   - 非同期なのでawaitを使用しよう！
+    //   - spender: 承認先アドレス (gatewayAddress as AddressString)
+    //   - value: 承認額 (amountNum - 数値をそのまま渡すだけ！)
+    // 完成版は ../react-sdk/ApproveTab.tsx を参照してください
+
   };
 
   // Purchaseタブに遷移

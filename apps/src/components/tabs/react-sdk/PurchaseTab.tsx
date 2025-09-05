@@ -748,32 +748,6 @@ export default function PurchaseTab() {
         </div>
       </div>
 
-      {/* React SDK状態デバッグパネル */}
-      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
-        <h4 className="text-lg font-semibold text-gray-900 mb-4">🔍 React SDK状態デバッグ</h4>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <h5 className="font-medium text-gray-700 mb-2">Approve</h5>
-            <div className="space-y-1">
-              <div>isReady: <span className={isApproveReady ? "text-green-600" : "text-red-600"}>{isApproveReady ? "✓" : "✗"}</span></div>
-              <div>isLoading: <span className={isApproveLoading ? "text-orange-600" : "text-gray-600"}>{isApproveLoading ? "✓" : "✗"}</span></div>
-              <div>isSuccess: <span className={isApproveSuccess ? "text-green-600" : "text-gray-600"}>{isApproveSuccess ? "✓" : "✗"}</span></div>
-              <div>error: <span className={approveError ? "text-red-600" : "text-gray-600"}>{approveError ? "✓" : "✗"}</span></div>
-            </div>
-          </div>
-          <div>
-            <h5 className="font-medium text-gray-700 mb-2">Transfer Auth</h5>
-            <div className="space-y-1">
-              <div>isReady: <span className={isTransferAuthReady ? "text-green-600" : "text-red-600"}>{isTransferAuthReady ? "✓" : "✗"}</span></div>
-              <div>isLoading: <span className={isTransferAuthLoading ? "text-orange-600" : "text-gray-600"}>{isTransferAuthLoading ? "✓" : "✗"}</span></div>
-              <div>isSuccess: <span className={isTransferAuthSuccess ? "text-green-600" : "text-gray-600"}>{isTransferAuthSuccess ? "✓" : "✗"}</span></div>
-              <div>error: <span className={transferAuthError ? "text-red-600" : "text-gray-600"}>{transferAuthError ? "✓" : "✗"}</span></div>
-              <div>hash: <span className="font-mono text-xs">{transferAuthHash || "なし"}</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* メインコンテンツ */}
       <div className="bg-white border border-gray-200 rounded-2xl shadow-lg p-8">
         {renderStateContent()}
