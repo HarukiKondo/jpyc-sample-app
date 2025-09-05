@@ -2,6 +2,18 @@
 
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
+// 📚 学習ガイド: JPYC React SDKを使ったPermit機能の実装
+// 
+// 🎯 目標: usePermitフックを使って、簡単にPermit機能を実装しよう！
+//
+// TODO: 96行目からpermit関数を呼び出してPermit実行しよう！
+// 
+// 📖 JPYC React SDKの手順:
+// 1. JPYC React SDKから必要なフックをインポート
+// 2. usePermitフックでPermit機能と状態を取得  
+// 3. permit関数を呼び出してPermit実行
+// 4. useAllowanceフックで現在の許可額を取得
+
 // 🚀 STEP 1: JPYC React SDKからPermit関連フックをインポート
 import { usePermit, useAllowance, type AddressString } from '@jpyc/sdk-react';
 import { 
@@ -15,7 +27,14 @@ export default function PermitTab() {
   // State
   const [value, setValue] = useState<string>('');
   const [deadline, setDeadline] = useState<string>('');
-  const [permitData, setPermitData] = useState<any>(null);
+  const [permitData, setPermitData] = useState<{
+    v: number;
+    r: `0x${string}`;
+    s: `0x${string}`;
+    domain?: unknown;
+    types?: unknown;
+    message?: unknown;
+  } | null>(null);
 
   // アドレス取得
   const gatewayAddress = getGatewayAddress();
@@ -62,7 +81,6 @@ export default function PermitTab() {
       setPermitData(null);
 
       // createPermitSignature関数はbigint（wei単位）を期待するため、parseJPYCを使用
-      const valueNum = parseFloat(value);
       const { parseJPYC } = await import('@/lib/jpycClient');
       const valueInWei = parseJPYC(value); // 正しいdecimal変換を使用
       const deadlineBigInt = BigInt(deadline);
@@ -74,11 +92,18 @@ export default function PermitTab() {
         deadlineBigInt
       );
 
-      setPermitData(signature);
+      // 型変換してsetState
+      setPermitData({
+        v: Number(signature.v),
+        r: signature.r,
+        s: signature.s,
+        domain: signature.domain,
+        types: signature.types,
+        message: signature.message
+      });
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Permit署名作成エラー:', err);
-      alert(err.message || 'Permit署名の作成に失敗しました');
     }
   };
 
@@ -92,6 +117,17 @@ export default function PermitTab() {
     try {
       // 🚀 STEP 4: permit関数を呼び出してPermit実行
       // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
+
+      // TODO：permit関数を呼び出してPermit実行しよう！
+      // ヒント: permit関数は以下の引数を受け取ります：
+      //   - 非同期なのでawaitを使用しよう！
+      //   - owner: 所有者アドレス (address)
+      //   - spender: 承認先アドレス (gatewayAddress as AddressString)
+      //   - value: 承認額 (parseFloat(value) - 数値をそのまま渡すだけ！)
+      //   - deadline: 期限 (BigInt(deadline) as any)
+      //   - v, r, s: 署名データ (permitData.v, permitData.r, permitData.s)
+      // 完成版は ../react-sdk/PermitTab.tsx を参照してください
+      
       await permit({
         owner: address,
         spender: gatewayAddress as AddressString,

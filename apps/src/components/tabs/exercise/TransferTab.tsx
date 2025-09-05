@@ -3,7 +3,7 @@
 // 
 // 🎯 目標: useTransferフックを使って、簡単にJPYC送信機能を実装しよう！
 //
-// TODO: 80行目からtransfer関数を呼び出して送信を実行しよう！
+// TODO: STEP 3でtransfer関数を呼び出して送信を実行しよう！
 // 
 // 📖 JPYC React SDKの手順:
 // 1. JPYC React SDKから必要なフックをインポート
@@ -72,7 +72,7 @@ export default function TransferTab() {
       // 🚀 STEP 3: transfer関数を呼び出して送信実行
       // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
       // ✅ 状態管理（loading, success, error）も自動
-
+      //
       // TODO：transfer関数を呼び出して送信を実行しよう！
       // ヒント: transfer関数は以下の引数を受け取ります：
       //   - 非同期なのでawaitを使用しよう！

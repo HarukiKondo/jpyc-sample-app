@@ -1,4 +1,15 @@
 "use client";
+// 📚 学習ガイド: JPYC React SDKを使った送信機能の実装
+// 
+// 🎯 目標: useTransferフックを使って、簡単にJPYC送信機能を実装しよう！
+//
+// TODO: STEP 3でtransfer関数を呼び出して送信を実行しよう！
+// 
+// 📖 JPYC React SDKの手順:
+// 1. JPYC React SDKから必要なフックをインポート
+// 2. useTransferフックから送信機能と状態を取得  
+// 3. transfer関数を呼び出して送信を実行
+// 4. reset関数で状態をリセット
 
 import { useState } from "react";
 import { useAccount } from 'wagmi';
@@ -60,6 +71,13 @@ export default function TransferTab() {
     // 🚀 STEP 3: transfer関数を呼び出して送信実行
     // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
     // ✅ 状態管理（loading, success, error）も自動
+    // 
+    // TODO：transfer関数を呼び出して送信を実行しよう！
+    // ヒント: transfer関数は以下の引数を受け取ります：
+    //   - 非同期なのでawaitを使用しよう！
+    //   - to: 送信先アドレス (recipient as AddressString)
+    //   - value: 送信額 (amountNum - 数値をそのまま渡すだけ！)
+    // 完成版は ../react-sdk/TransferTab.tsx を参照してください
     await transfer({
       to: recipient as AddressString,
       value: amountNum // 例: 100 → 内部で 100 * 10^18 に変換される

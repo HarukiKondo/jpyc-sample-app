@@ -2,6 +2,18 @@
 
 import { useState } from "react";
 import { useAccount } from "wagmi";
+// 📚 学習ガイド: JPYC React SDKを使ったAuthorization機能の実装
+// 
+// 🎯 目標: useTransferWithAuthorization/useReceiveWithAuthorization/useCancelAuthorizationフックを使って、簡単にAuthorization機能を実装しよう！
+//
+// TODO: 240行目、254行目、268行目からauthorization関数を呼び出して実行しよう！
+// 
+// 📖 JPYC React SDKの手順:
+// 1. JPYC React SDKから必要なフックをインポート
+// 2. useTransferWithAuthorization/useReceiveWithAuthorization/useCancelAuthorizationフックで機能と状態を取得  
+// 3. 選択されたモードに応じて対応する関数を呼び出して実行
+// 4. 署名データと組み合わせてトランザクション実行
+
 // 🚀 STEP 1: JPYC React SDKからAuthorization関連フックをインポート
 import { 
   useTransferWithAuthorization, 
@@ -165,7 +177,7 @@ export default function AuthorizationTab() {
           nonce,
           validAfter,
           validBefore,
-          hash: sig.hash
+          hash: sig.signature as `0x${string}`
         });
 
       } else if (activeMode === 'receive') {
@@ -195,7 +207,7 @@ export default function AuthorizationTab() {
           nonce,
           validAfter,
           validBefore,
-          hash: sig.hash
+          hash: sig.signature as `0x${string}`
         });
         
         // 署名作成時の送信者アドレスを保存
@@ -216,7 +228,7 @@ export default function AuthorizationTab() {
           v: sig.v,
           r: sig.r,
           s: sig.s,
-          hash: sig.hash
+          hash: sig.signature as `0x${string}`
         });
       }
 
@@ -237,7 +249,14 @@ export default function AuthorizationTab() {
     try {
       // 🚀 STEP 3: 選択されたモードに応じてReact SDK関数を実行
       if (activeMode === 'transfer' && signature && transferWithAuthorization) {
-        // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
+        // TODO：transferWithAuthorization関数を呼び出して送信承認実行しよう！
+        // ヒント: transferWithAuthorization関数は以下の引数を受け取ります：
+        //   - 非同期なのでawaitを使用しよう！
+        //   - from: 送信者アドレス (address)
+        //   - to: 受信者アドレス (toAddress as AddressString)
+        //   - value: 送信額 (parseFloat(amount) - 数値をそのまま渡すだけ！)
+        //   - validAfter, validBefore, nonce, v, r, s: 署名データ
+        // 完成版は ../react-sdk/AuthorizationTab.tsx を参照してください
         await transferWithAuthorization({
           from: address,
           to: toAddress as AddressString,
@@ -251,7 +270,14 @@ export default function AuthorizationTab() {
         });
 
       } else if (activeMode === 'receive' && signature && receiveWithAuthorization) {
-        // ✅ 受取承認の実行（受信者のみ実行可能）
+        // TODO：receiveWithAuthorization関数を呼び出して受取承認実行しよう！
+        // ヒント: receiveWithAuthorization関数は以下の引数を受け取ります：
+        //   - 非同期なのでawaitを使用しよう！
+        //   - from: 送信者アドレス (originalFromAddress as AddressString)
+        //   - to: 受信者アドレス (address)
+        //   - value: 送信額 (parseFloat(amount))
+        //   - validAfter, validBefore, nonce, v, r, s: 署名データ
+        // 完成版は ../react-sdk/AuthorizationTab.tsx を参照してください
         await receiveWithAuthorization({
           from: originalFromAddress as AddressString, // 署名時の送信者アドレスを使用
           to: address,
@@ -265,7 +291,13 @@ export default function AuthorizationTab() {
         });
 
       } else if (activeMode === 'cancel' && cancelSignature && cancelAuthorization) {
-        // ✅ 承認のキャンセル実行
+        // TODO：cancelAuthorization関数を呼び出して承認キャンセル実行しよう！
+        // ヒント: cancelAuthorization関数は以下の引数を受け取ります：
+        //   - 非同期なのでawaitを使用しよう！
+        //   - authorizer: 認証者アドレス (authorizerAddress as AddressString)
+        //   - nonce: キャンセル対象のnonce (cancelNonce as any)
+        //   - v, r, s: 署名データ
+        // 完成版は ../react-sdk/AuthorizationTab.tsx を参照してください
         await cancelAuthorization({
           authorizer: authorizerAddress as AddressString,
           nonce: cancelNonce as any, // Bytes32型に変換
@@ -273,7 +305,6 @@ export default function AuthorizationTab() {
           r: cancelSignature.r as any, // Bytes32型に変換
           s: cancelSignature.s as any  // Bytes32型に変換
         });
-
       } else {
         alert("署名を先に作成してください");
         return;

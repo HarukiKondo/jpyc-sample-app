@@ -85,9 +85,6 @@ export default function ApproveTab() {
       //   - value: 承認額 (amountNum - 数値をそのまま渡すだけ！)
       // 完成版は ../react-sdk/ApproveTab.tsx を参照してください
       
-      console.log("TODO: approve関数を実装してください");
-      console.log("承認先:", gatewayAddress);
-      console.log("承認額:", amountNum);
     } catch (err: unknown) {
       console.error("Approve エラー:", err);
       // エラーはuseApproveのerror状態で自動管理される

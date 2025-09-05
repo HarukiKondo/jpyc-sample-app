@@ -2,6 +2,18 @@
 
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
+// 📚 学習ガイド: JPYC React SDKを使ったApprove機能の実装
+// 
+// 🎯 目標: useApproveフックを使って、簡単にApprove機能を実装しよう！
+//
+// TODO: 69行目からapprove関数を呼び出してApprove実行しよう！
+// 
+// 📖 JPYC React SDKの手順:
+// 1. JPYC React SDKから必要なフックをインポート
+// 2. useApproveフックでApprove機能と状態を取得  
+// 3. approve関数を呼び出してApprove実行
+// 4. useAllowanceフックで現在の許可額を取得
+
 // 🚀 STEP 1: JPYC React SDKからApprove関連フックをインポート
 import { useApprove, useAllowance, type AddressString } from '@jpyc/sdk-react';
 import { getGatewayAddress } from '@/lib/jpycClient';
@@ -65,11 +77,18 @@ export default function ApproveTab() {
     try {
       // 🚀 STEP 4: approve関数を呼び出してApprove実行
       // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
+      
+      // TODO：approve関数を呼び出してApprove実行しよう！
+      // ヒント: approve関数は以下の引数を受け取ります：
+      //   - 非同期なのでawaitを使用しよう！
+      //   - spender: 承認先アドレス (gatewayAddress as AddressString)
+      //   - value: 承認額 (amountNum - 数値をそのまま渡すだけ！)
+      // 完成版は ../react-sdk/ApproveTab.tsx を参照してください
       await approve({
         spender: gatewayAddress as `0x${string}`,
         value: amountNum // 例：10000 → 内部で 10000 * 10^18 に変換される
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Approve エラー:", err);
       // エラーはuseApproveのerror状態で自動管理される
     }

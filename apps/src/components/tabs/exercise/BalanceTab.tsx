@@ -5,7 +5,7 @@ import { useAccount } from 'wagmi';
 // 
 // 🎯 目標: useBalanceOf/useTotalSupplyフックを使って、簡単に残高を取得しよう！
 //
-// TODO: 19行目と26行目でフックを呼び出して残高とTotal Supplyを取得しよう！
+// TODO: STEP 2でBalanceを、STEP 3でTotal Supplyを取得しよう！
 // 
 // 📖 JPYC React SDKの手順:
 // 1. JPYC React SDKから必要なフックをインポート
@@ -20,12 +20,16 @@ export default function BalanceTab() {
   const { address, isConnected } = useAccount();
 
   // 🚀 STEP 2: useBalanceOfフックでユーザーの残高を取得
+  // 
   // TODO：useBalanceOfフックを呼び出してユーザーの残高を取得しよう！
   //       nullになっているので、useBalanceOfフックを呼び出してください
   // ヒント: useBalanceOfフックは以下の引数を受け取ります：
   //   - account: ユーザーのアドレス (address as AddressString)
   // 完成版は ../react-sdk/BalanceTab.tsx を参照してください
-
+  // 
+  // data: 残高データ（文字列、decimal変換済み）
+  // isPending: データ取得中の状態
+  // error: エラー情報
   const { 
     data: balance, 
     isPending: isBalanceLoading, 
@@ -36,12 +40,12 @@ export default function BalanceTab() {
     error: null
   };
 
+
   // 🚀 STEP 3: useTotalSupplyフックでJPYCの総供給量を取得
   // TODO：useTotalSupplyフックを呼び出してJPYCの総供給量を取得しよう！
   //       nullになっているので、useTotalSupplyフックを呼び出してください
   // ヒント: useTotalSupplyフックは空のオブジェクト{}を渡します
   // 完成版は ../react-sdk/BalanceTab.tsx を参照してください
-  
   const totalSupplyResult = null;
 
   const totalSupply = totalSupplyResult?.data;

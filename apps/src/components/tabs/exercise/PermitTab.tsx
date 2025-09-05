@@ -128,12 +128,6 @@ export default function PermitTab() {
       //   - v, r, s: 署名データ (permitData.v, permitData.r, permitData.s)
       // 完成版は ../react-sdk/PermitTab.tsx を参照してください
       
-      console.log("TODO: permit関数を実装してください");
-      console.log("所有者:", address);
-      console.log("承認先:", gatewayAddress);
-      console.log("承認額:", parseFloat(value));
-      console.log("期限:", deadline);
-      console.log("署名データ:", permitData);
     } catch (err: unknown) {
       console.error("Permit実行エラー:", err);
       // エラーはusePermitのerror状態で自動管理される

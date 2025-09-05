@@ -34,12 +34,12 @@ type AuthMode = 'transfer' | 'receive' | 'cancel';
 
 interface AuthSignature {
   v: number;
-  r: AddressString;
-  s: AddressString;
-  nonce: AddressString;
+  r: `0x${string}`;
+  s: `0x${string}`;
+  nonce: `0x${string}`;
   validAfter: bigint;
   validBefore: bigint;
-  hash: AddressString;
+  hash: `0x${string}`;
 }
 
 export default function AuthorizationTab() {
@@ -100,9 +100,9 @@ export default function AuthorizationTab() {
   const [authorizerAddress, setAuthorizerAddress] = useState("");
   const [cancelSignature, setCancelSignature] = useState<{
     v: number;
-    r: AddressString;
-    s: AddressString;
-    hash: AddressString;
+    r: `0x${string}`;
+    s: `0x${string}`;
+    hash: `0x${string}`;
   } | null>(null);
 
   const modes = [
@@ -177,7 +177,7 @@ export default function AuthorizationTab() {
           nonce,
           validAfter,
           validBefore,
-          hash: sig.signature as AddressString
+          hash: sig.signature as `0x${string}`
         });
 
       } else if (activeMode === 'receive') {
@@ -207,7 +207,7 @@ export default function AuthorizationTab() {
           nonce,
           validAfter,
           validBefore,
-          hash: sig.signature as AddressString
+          hash: sig.signature as `0x${string}`
         });
         
         // 署名作成時の送信者アドレスを保存
@@ -228,7 +228,7 @@ export default function AuthorizationTab() {
           v: sig.v,
           r: sig.r,
           s: sig.s,
-          hash: sig.signature as AddressString
+          hash: sig.signature as `0x${string}`
         });
       }
 
@@ -257,12 +257,6 @@ export default function AuthorizationTab() {
         //   - value: 送信額 (parseFloat(amount) - 数値をそのまま渡すだけ！)
         //   - validAfter, validBefore, nonce, v, r, s: 署名データ
         // 完成版は ../react-sdk/AuthorizationTab.tsx を参照してください
-        
-        console.log("TODO: transferWithAuthorization関数を実装してください");
-        console.log("送信者:", address);
-        console.log("受信者:", toAddress);
-        console.log("送信額:", parseFloat(amount));
-        console.log("署名データ:", signature);
 
       } else if (activeMode === 'receive' && signature && receiveWithAuthorization) {
         // TODO：receiveWithAuthorization関数を呼び出して受取承認実行しよう！
@@ -274,12 +268,6 @@ export default function AuthorizationTab() {
         //   - validAfter, validBefore, nonce, v, r, s: 署名データ
         // 完成版は ../react-sdk/AuthorizationTab.tsx を参照してください
         
-        console.log("TODO: receiveWithAuthorization関数を実装してください");
-        console.log("送信者:", originalFromAddress);
-        console.log("受信者:", address);
-        console.log("送信額:", parseFloat(amount));
-        console.log("署名データ:", signature);
-
       } else if (activeMode === 'cancel' && cancelSignature && cancelAuthorization) {
         // TODO：cancelAuthorization関数を呼び出して承認キャンセル実行しよう！
         // ヒント: cancelAuthorization関数は以下の引数を受け取ります：
@@ -288,11 +276,6 @@ export default function AuthorizationTab() {
         //   - nonce: キャンセル対象のnonce (cancelNonce as any)
         //   - v, r, s: 署名データ
         // 完成版は ../react-sdk/AuthorizationTab.tsx を参照してください
-        
-        console.log("TODO: cancelAuthorization関数を実装してください");
-        console.log("認証者:", authorizerAddress);
-        console.log("nonce:", cancelNonce);
-        console.log("署名データ:", cancelSignature);
 
       } else {
         alert("署名を先に作成してください、または機能の準備ができていません");
