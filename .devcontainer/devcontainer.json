@@ -28,7 +28,10 @@
 			}
 		}
 	},
-	"postCreateCommand": "bash .devcontainer/setup.sh",
+	"postCreateCommand": [
+		"bash", "-c", 
+		"echo '🚀 Starting JPYC Sample App setup...' && bash .devcontainer/setup.sh && echo '✅ Setup completed successfully!' || echo '❌ Setup failed, please run setup.sh manually'"
+	],
 	"forwardPorts": [3000, 8545],
 	"portsAttributes": {
 		"3000": {

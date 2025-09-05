@@ -2,44 +2,114 @@
 
 # GitHub Codespaces 初期セットアップスクリプト
 
-set -e
+set -e  # エラー時に停止
+set -x  # 実行コマンドを表示
 
 echo "🚀 JPYC Sample App Codespaces環境をセットアップ中..."
 
 # Gitサブモジュールの初期化と更新
 echo "📁 Gitサブモジュールを初期化中..."
-git submodule update --init --recursive
+if git submodule update --init --recursive; then
+    echo "✅ Gitサブモジュール初期化完了"
+else
+    echo "❌ Gitサブモジュール初期化失敗"
+    exit 1
+fi
 
 # pnpmのインストール
 echo "📦 pnpmをインストール中..."
-npm install -g pnpm
+if npm install -g pnpm; then
+    echo "✅ pnpmインストール完了"
+else
+    echo "❌ pnpmインストール失敗"
+    exit 1
+fi
 
 # Foundryのインストール
 echo "🔨 Foundryをインストール中..."
-curl -L https://foundry.paradigm.xyz | bash
-source ~/.bashrc
+if curl -L https://foundry.paradigm.xyz | bash; then
+    echo "✅ Foundryダウンロード完了"
+else
+    echo "❌ Foundryダウンロード失敗"
+    exit 1
+fi
+
+# Foundryのセットアップ
+if [ -f ~/.bashrc ]; then
+    source ~/.bashrc || true
+fi
 export PATH="$HOME/.foundry/bin:$PATH"
-foundryup
+if foundryup; then
+    echo "✅ Foundryセットアップ完了"
+else
+    echo "❌ Foundryセットアップ失敗"
+    exit 1
+fi
 
 # Foundryのパスを永続化
 echo 'export PATH="$HOME/.foundry/bin:$PATH"' >> ~/.bashrc
 
 # ルートディレクトリの依存関係をインストール
 echo "📋 ルート依存関係をインストール中..."
-pnpm install
+if pnpm install; then
+    echo "✅ ルート依存関係インストール完了"
+else
+    echo "❌ ルート依存関係インストール失敗"
+    exit 1
+fi
 
 # JPYC React SDKをビルド
 echo "⚛️ JPYC React SDKをビルド中..."
-cd external/jpyc-sdks/packages/react
-npm install
-npm run build
-cd ../../../..
+if cd external/jpyc-sdks/packages/react; then
+    echo "✅ React SDKディレクトリに移動完了"
+else
+    echo "❌ React SDKディレクトリに移動失敗"
+    exit 1
+fi
+
+if npm install; then
+    echo "✅ React SDK依存関係インストール完了"
+else
+    echo "❌ React SDK依存関係インストール失敗"
+    exit 1
+fi
+
+if npm run build; then
+    echo "✅ React SDKビルド完了"
+else
+    echo "❌ React SDKビルド失敗"
+    exit 1
+fi
+
+if cd ../../../..; then
+    echo "✅ ルートディレクトリに戻りました"
+else
+    echo "❌ ルートディレクトリに戻れませんでした"
+    exit 1
+fi
 
 # フロントエンドの依存関係をインストール
 echo "📋 フロントエンド依存関係をインストール中..."
-cd apps
-pnpm install
-cd ..
+if cd apps; then
+    echo "✅ appsディレクトリに移動完了"
+else
+    echo "❌ appsディレクトリに移動失敗"
+    exit 1
+fi
+
+if pnpm install; then
+    echo "✅ フロントエンド依存関係インストール完了"
+else
+    echo "❌ フロントエンド依存関係インストール失敗"
+    exit 1
+fi
+
+if cd ..; then
+    echo "✅ ルートディレクトリに戻りました"
+else
+    echo "❌ ルートディレクトリに戻れませんでした"
+    exit 1
+fi
 
 # Foundryの依存関係をインストール
 echo "🔧 Foundry依存関係をインストール中..."
