@@ -67,14 +67,14 @@ else
     exit 1
 fi
 
-if npm install; then
+if npm install --legacy-peer-deps --ignore-scripts; then
     echo "✅ React SDK依存関係インストール完了"
 else
     echo "❌ React SDK依存関係インストール失敗"
     exit 1
 fi
 
-if npm run build; then
+if npm run compile; then
     echo "✅ React SDKビルド完了"
 else
     echo "❌ React SDKビルド失敗"
@@ -114,7 +114,11 @@ fi
 # Foundryの依存関係をインストール
 echo "🔧 Foundry依存関係をインストール中..."
 cd contracts
-forge install --no-commit
+if [ ! -d "lib" ] || [ -z "$(ls -A lib 2>/dev/null)" ]; then
+    forge install
+else
+    echo "✅ Foundry依存関係は既にインストール済み"
+fi
 cd ..
 
 # 環境変数ファイルのテンプレートを作成
