@@ -7,6 +7,9 @@ import { config } from '@/lib/wagmi';
 import { useState } from 'react';
 
 // React SDKのContextを常に使用
+// 📝 レビュー改善: JpycSdkProviderを直接利用しない理由
+// RainbowKitProviderでもwagmiConfigが作られるため、競合を避けるために
+// SdkContext.Providerのみを使用し、wagmiConfigは統一している
 let SdkContext: React.ComponentType<any> | null = null;
 
 try {

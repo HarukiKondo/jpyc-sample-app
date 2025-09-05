@@ -6,7 +6,8 @@ import { useAccount } from "wagmi";
 import { 
   useTransferWithAuthorization, 
   useReceiveWithAuthorization,
-  useCancelAuthorization
+  useCancelAuthorization,
+  type AddressString
 } from '@jpyc/sdk-react';
 import { 
   createTransferWithAuthorizationSignature,
@@ -39,9 +40,9 @@ export default function AuthorizationTab() {
   const [isLoadingSignature, setIsLoadingSignature] = useState(false);
 
   // 🚀 STEP 2: EIP-3009 Authorization関連フックを取得
-  // Transfer with Authorization（送金承認）
+  // Transfer with Authorization（送信承認）
   const { 
-    transferWithAuthorization,  // 送金承認実行関数
+    transferWithAuthorization,  // 送信承認実行関数
     isReady: isTransferReady,   // SDK準備完了状態
     isLoading: isTransferLoading, // 実行中状態
     isSuccess: isTransferSuccess, // 成功状態
@@ -150,7 +151,7 @@ export default function AuthorizationTab() {
 
         const sig = await createTransferWithAuthorizationSignature(
           address,
-          toAddress as `0x${string}`,
+          toAddress as AddressString,
           value,
           validAfter,
           validBefore,
@@ -180,7 +181,7 @@ export default function AuthorizationTab() {
 
         const sig = await createReceiveWithAuthorizationSignature(
           address,
-          toAddress as `0x${string}`,
+          toAddress as AddressString,
           value,
           validAfter,
           validBefore,
@@ -207,8 +208,8 @@ export default function AuthorizationTab() {
         }
 
         const sig = await createCancelAuthorizationSignature(
-          authorizerAddress as `0x${string}`,
-          cancelNonce as `0x${string}`
+          authorizerAddress as AddressString,
+          cancelNonce as AddressString
         );
 
         setCancelSignature({
@@ -239,7 +240,7 @@ export default function AuthorizationTab() {
         // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
         await transferWithAuthorization({
           from: address,
-          to: toAddress as `0x${string}`,
+          to: toAddress as AddressString,
           value: parseFloat(amount), // 例: 100 → 内部で 100 * 10^18 に変換される
           validAfter: signature.validAfter as any, // Uint256型に変換
           validBefore: signature.validBefore as any, // Uint256型に変換
@@ -252,7 +253,7 @@ export default function AuthorizationTab() {
       } else if (activeMode === 'receive' && signature && receiveWithAuthorization) {
         // ✅ 受取承認の実行（受信者のみ実行可能）
         await receiveWithAuthorization({
-          from: originalFromAddress as `0x${string}`, // 署名時の送信者アドレスを使用
+          from: originalFromAddress as AddressString, // 署名時の送信者アドレスを使用
           to: address,
           value: parseFloat(amount), // React SDKは数値をそのまま渡す
           validAfter: signature.validAfter as any, // Uint256型に変換
@@ -266,7 +267,7 @@ export default function AuthorizationTab() {
       } else if (activeMode === 'cancel' && cancelSignature && cancelAuthorization) {
         // ✅ 承認のキャンセル実行
         await cancelAuthorization({
-          authorizer: authorizerAddress as `0x${string}`,
+          authorizer: authorizerAddress as AddressString,
           nonce: cancelNonce as any, // Bytes32型に変換
           v: cancelSignature.v as any, // Uint8型に変換
           r: cancelSignature.r as any, // Bytes32型に変換
@@ -274,7 +275,7 @@ export default function AuthorizationTab() {
         });
 
       } else {
-        alert("署名を先に作成してください、または機能の準備ができていません");
+        alert("署名を先に作成してください");
         return;
       }
 

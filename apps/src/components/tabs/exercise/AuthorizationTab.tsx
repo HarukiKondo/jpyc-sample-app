@@ -51,9 +51,9 @@ export default function AuthorizationTab() {
   const [isLoadingSignature, setIsLoadingSignature] = useState(false);
 
   // 🚀 STEP 2: EIP-3009 Authorization関連フックを取得
-  // Transfer with Authorization（送金承認）
+  // Transfer with Authorization（送信承認）
   const { 
-    transferWithAuthorization,  // 送金承認実行関数
+    transferWithAuthorization,  // 送信承認実行関数
     isReady: isTransferReady,   // SDK準備完了状態
     isLoading: isTransferLoading, // 実行中状態
     isSuccess: isTransferSuccess, // 成功状態
@@ -248,19 +248,19 @@ export default function AuthorizationTab() {
     try {
       // 🚀 STEP 3: 選択されたモードに応じてReact SDK関数を実行
       if (activeMode === 'transfer' && signature && transferWithAuthorization) {
-        // TODO：transferWithAuthorization関数を呼び出して送金承認実行しよう！
+        // TODO：transferWithAuthorization関数を呼び出して送信承認実行しよう！
         // ヒント: transferWithAuthorization関数は以下の引数を受け取ります：
         //   - 非同期なのでawaitを使用しよう！
         //   - from: 送信者アドレス (address)
         //   - to: 受信者アドレス (toAddress as `0x${string}`)
-        //   - value: 送金額 (parseFloat(amount) - 数値をそのまま渡すだけ！)
+        //   - value: 送信額 (parseFloat(amount) - 数値をそのまま渡すだけ！)
         //   - validAfter, validBefore, nonce, v, r, s: 署名データ
         // 完成版は ../react-sdk/AuthorizationTab.tsx を参照してください
         
         console.log("TODO: transferWithAuthorization関数を実装してください");
         console.log("送信者:", address);
         console.log("受信者:", toAddress);
-        console.log("送金額:", parseFloat(amount));
+        console.log("送信額:", parseFloat(amount));
         console.log("署名データ:", signature);
 
       } else if (activeMode === 'receive' && signature && receiveWithAuthorization) {
@@ -269,14 +269,14 @@ export default function AuthorizationTab() {
         //   - 非同期なのでawaitを使用しよう！
         //   - from: 送信者アドレス (originalFromAddress as `0x${string}`)
         //   - to: 受信者アドレス (address)
-        //   - value: 送金額 (parseFloat(amount))
+        //   - value: 送信額 (parseFloat(amount))
         //   - validAfter, validBefore, nonce, v, r, s: 署名データ
         // 完成版は ../react-sdk/AuthorizationTab.tsx を参照してください
         
         console.log("TODO: receiveWithAuthorization関数を実装してください");
         console.log("送信者:", originalFromAddress);
         console.log("受信者:", address);
-        console.log("送金額:", parseFloat(amount));
+        console.log("送信額:", parseFloat(amount));
         console.log("署名データ:", signature);
 
       } else if (activeMode === 'cancel' && cancelSignature && cancelAuthorization) {

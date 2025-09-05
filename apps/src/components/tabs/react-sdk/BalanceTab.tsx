@@ -2,7 +2,7 @@
 
 import { useAccount } from 'wagmi';
 // 🚀 STEP 1: JPYC React SDKから残高取得フックをインポート
-import { useBalanceOf, useTotalSupply } from '@jpyc/sdk-react';
+import { useBalanceOf, useTotalSupply, type AddressString } from '@jpyc/sdk-react';
 
 export default function BalanceTab() {
   const { address, isConnected } = useAccount();
@@ -16,7 +16,7 @@ export default function BalanceTab() {
     isPending: isBalanceLoading, 
     error: balanceError 
   } = useBalanceOf({ 
-    account: address as `0x${string}`
+    account: address as AddressString
   });
 
   // 🚀 STEP 3: useTotalSupplyフックでJPYCの総供給量を取得

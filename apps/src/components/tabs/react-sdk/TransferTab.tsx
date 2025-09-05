@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAccount } from 'wagmi';
 import { isAddress } from 'viem';
 // 🚀 STEP 1: JPYC React SDKからuseTransferフックをインポート
-import { useTransfer } from '@jpyc/sdk-react';
+import { useTransfer, type AddressString } from '@jpyc/sdk-react';
 
 export default function TransferTab() {
   const { isConnected } = useAccount();
@@ -13,10 +13,10 @@ export default function TransferTab() {
   const [amount, setAmount] = useState("");
   
   // 🚀 STEP 2: useTransferフックから必要な機能と状態を取得
-  // transfer: 送金実行関数
+  // transfer: 送信実行関数
   // isReady: SDK準備完了状態
   // isLoading: トランザクション実行中状態
-  // isSuccess: 送金成功状態
+  // isSuccess: 送信成功状態
   // error: エラー情報
   // hash: トランザクションハッシュ
   // reset: 状態リセット関数
@@ -37,7 +37,7 @@ export default function TransferTab() {
     }
 
     if (!recipient || !amount) {
-      alert("送金先アドレスと金額を入力してください");
+      alert("送信先アドレスと金額を入力してください");
       return;
     }
 
@@ -57,18 +57,13 @@ export default function TransferTab() {
       return;
     }
 
-    try {
-      // 🚀 STEP 3: transfer関数を呼び出して送金実行
-      // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
-      // ✅ 状態管理（loading, success, error）も自動
-      await transfer({
-        to: recipient as `0x${string}`,
-        value: amountNum // 例: 100 → 内部で 100 * 10^18 に変換される
-      });
-    } catch (err: any) {
-      console.error("送金エラー:", err);
-      // エラーはuseTransferのerror状態で自動管理される
-    }
+    // 🚀 STEP 3: transfer関数を呼び出して送信実行
+    // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
+    // ✅ 状態管理（loading, success, error）も自動
+    await transfer({
+      to: recipient as AddressString,
+      value: amountNum // 例: 100 → 内部で 100 * 10^18 に変換される
+    });
   };
 
   const resetForm = () => {
@@ -82,8 +77,8 @@ export default function TransferTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">JPYC送金 (React SDK)</h2>
-          <p className="text-gray-600 mt-1">React SDKのuseTransferフックを使用した送金</p>
+          <h2 className="text-2xl font-bold text-gray-900">JPYC送信 (React SDK)</h2>
+          <p className="text-gray-600 mt-1">React SDKのuseTransferフックを使用した送信</p>
         </div>
         <div className="flex items-center space-x-2 text-sm text-gray-600">
           <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
@@ -92,7 +87,7 @@ export default function TransferTab() {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* メイン送金フォーム */}
+        {/* メイン送信フォーム */}
         <div className="lg:col-span-2">
           <div className="bg-white border border-gray-200 rounded-2xl shadow-soft p-6">
             <div className="flex items-center mb-6">
@@ -102,7 +97,7 @@ export default function TransferTab() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">React SDK送金フォーム</h3>
+                <h3 className="text-lg font-semibold text-gray-900">React SDK送信フォーム</h3>
                 <p className="text-sm text-gray-600">useTransfer() フック使用</p>
               </div>
             </div>
@@ -110,7 +105,7 @@ export default function TransferTab() {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  送金先アドレス
+                  送信先アドレス
                 </label>
                 <div className="relative">
                   <input
@@ -132,7 +127,7 @@ export default function TransferTab() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  送金額 (JPYC)
+                  送信額 (JPYC)
                 </label>
                 <div className="relative">
                   <input
@@ -148,7 +143,7 @@ export default function TransferTab() {
                     <span className="text-gray-500 text-sm font-medium">JPYC</span>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">送金したい金額を入力してください</p>
+                <p className="text-xs text-gray-500 mt-1">送信したい金額を入力してください</p>
               </div>
 
               <button
@@ -159,14 +154,14 @@ export default function TransferTab() {
                 {isLoading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    送金処理中...
+                    送信処理中...
                   </div>
                 ) : (
                   <div className="flex items-center justify-center">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
-                    送金実行
+                    送信実行
                   </div>
                 )}
               </button>
@@ -181,7 +176,7 @@ export default function TransferTab() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-red-900">React SDK送金エラー</h4>
+                    <h4 className="font-semibold text-red-900">React SDK送信エラー</h4>
                     <p className="text-sm text-red-700 mt-1">{error?.message || 'エラーが発生しました'}</p>
                   </div>
                 </div>
@@ -202,7 +197,7 @@ export default function TransferTab() {
                   </div>
                   <div className="flex-1">
                     <h4 className="font-semibold text-green-900">
-                      {isLoading ? "送金処理中..." : isSuccess ? "送金完了!" : "送金中..."}
+                      {isLoading ? "送信処理中..." : isSuccess ? "送信完了!" : "送信中..."}
                     </h4>
                     <p className="text-sm text-green-700 mt-1">
                       トランザクションハッシュ:
@@ -215,7 +210,7 @@ export default function TransferTab() {
                         onClick={resetForm}
                         className="mt-3 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
                       >
-                        新しい送金
+                        新しい送信
                       </button>
                     )}
                   </div>
@@ -238,7 +233,7 @@ export default function TransferTab() {
                   </svg>
                 </div>
                 <div>
-                  <h5 className="font-medium text-gray-900 mb-1">フックベース送金</h5>
+                  <h5 className="font-medium text-gray-900 mb-1">フックベース送信</h5>
                   <p className="text-sm text-gray-600">
                     <code className="bg-gray-100 px-1 rounded text-xs">useTransfer()</code>フックで
                     状態管理が自動化されています。
@@ -272,7 +267,7 @@ export default function TransferTab() {
                 </div>
                 <h5 className="font-medium text-gray-900 mb-1">ウォレット未接続</h5>
                 <p className="text-sm text-gray-600">
-                  送金を行うには、まずウォレットを接続してください。
+                  送信を行うには、まずウォレットを接続してください。
                 </p>
               </div>
             </div>

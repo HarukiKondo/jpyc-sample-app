@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
 // 🚀 STEP 1: JPYC React SDKからPermit関連フックをインポート
-import { usePermit, useAllowance } from '@jpyc/sdk-react';
+import { usePermit, useAllowance, type AddressString } from '@jpyc/sdk-react';
 import { 
   getGatewayAddress,
   createPermitSignature
@@ -37,8 +37,8 @@ export default function PermitTab() {
     isPending: loadingAllowance, // データ取得中状態
     error: allowanceError       // エラー情報
   } = useAllowance({
-    owner: address as `0x${string}`,
-    spender: gatewayAddress as `0x${string}`
+    owner: address as AddressString,
+    spender: gatewayAddress as AddressString
   });
 
   const currentAllowance = parseFloat(currentAllowanceStr || '0');
@@ -94,7 +94,7 @@ export default function PermitTab() {
       // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
       await permit({
         owner: address,
-        spender: gatewayAddress as `0x${string}`,
+        spender: gatewayAddress as AddressString,
         value: parseFloat(value), // 例: 100 → 内部で 100 * 10^18 に変換される
         deadline: BigInt(deadline) as any, // Uint256型に変換
         v: permitData.v as any, // Uint8型に変換

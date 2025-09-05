@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
 // 🚀 STEP 1: JPYC React SDKからApprove関連フックをインポート
-import { useApprove, useAllowance } from '@jpyc/sdk-react';
+import { useApprove, useAllowance, type AddressString } from '@jpyc/sdk-react';
 import { getGatewayAddress } from '@/lib/jpycClient';
 
 export default function ApproveTab() {
@@ -32,8 +32,8 @@ export default function ApproveTab() {
     isPending: loadingAllowance, // データ取得中状態
     error: allowanceError       // エラー情報
   } = useAllowance({
-    owner: address as `0x${string}`,
-    spender: gatewayAddress as `0x${string}`
+    owner: address as AddressString,
+    spender: gatewayAddress as AddressString
   });
 
   // React SDKは文字列で返すため、数値に変換
