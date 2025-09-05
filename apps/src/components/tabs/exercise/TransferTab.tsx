@@ -68,22 +68,17 @@ export default function TransferTab() {
       return;
     }
 
-    try {
-      // 🚀 STEP 3: transfer関数を呼び出して送信実行
-      // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
-      // ✅ 状態管理（loading, success, error）も自動
-      //
-      // TODO：transfer関数を呼び出して送信を実行しよう！
-      // ヒント: transfer関数は以下の引数を受け取ります：
-      //   - 非同期なのでawaitを使用しよう！
-      //   - to: 送信先アドレス (recipient as AddressString)
-      //   - value: 送信額 (amountNum - 数値をそのまま渡すだけ！)
-      // 完成版は ../react-sdk/TransferTab.tsx を参照してください
+    // 🚀 STEP 3: transfer関数を呼び出して送信実行
+    // ✅ 数値をそのまま渡すだけ（10^18のdecimal変換は自動）
+    // ✅ 状態管理（loading, success, error）も自動
+    //
+    // TODO：transfer関数を呼び出して送信を実行しよう！
+    // ヒント: transfer関数は以下の引数を受け取ります：
+    //   - 非同期なのでawaitを使用しよう！
+    //   - to: 送信先アドレス (recipient as AddressString)
+    //   - value: 送信額 (amountNum - 数値をそのまま渡すだけ！)
+    // 完成版は ../react-sdk/TransferTab.tsx を参照してください
 
-    } catch (err: unknown) {
-      console.error("送信エラー:", err);
-      // エラーはuseTransferのerror状態で自動管理される
-    }
   };
 
   const resetForm = () => {
