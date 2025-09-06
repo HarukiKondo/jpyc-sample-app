@@ -5,7 +5,7 @@ JPYCを使った決済フローをハンズオンで実装・理解するため�
 ## 🎯 ハンズオンの目的
 
 - **JPYC基本操作**の体験: `balanceOf` / `transfer` / `approve` / `permit` / `authorization`
-- **ゲートウェイ経由決済**の実装: 注文IDをオンチェーン記録
+- **ゲートウェイ経由決済**の理解: 注文IDをオンチェーン記録
 - **3つの決済フロー**の比較: Approve+Pay（2TX） vs Permit+Pay（1TX） vs Transfer Auth（1TX）
 - **技術スタック**: Next.js + viem + RainbowKit / Foundry
 
@@ -20,6 +20,7 @@ JPYCを使った決済フローをハンズオンで実装・理解するため�
 ### ⚙️ 2. 自動セットアップの確認
 
 Codespacesが起動したら、**自動セットアップが実行される**はずです：
+※ 結構な時間がかかるので辛抱してください。
 
 ```bash
 # セットアップ内容（自動実行）:
@@ -42,27 +43,23 @@ bash .devcontainer/setup.sh
 
 ルートディレクトリで下記のコマンドを実行すると即座に挙動を確認できる
 
-### ⚛️ React SDK完成版
+### 🎓 React SDK学習版（ハンズオン）
 ```bash
 pnpm dev
 ```
-React SDKの完成版が動作します。全ての機能を体験できます。
+React SDKの部分が未実装の`apps/src/components/tabs/exercise`が立ち上がります。
 
-### 🎓 React SDK学習版（ハンズオン）
+### ⚛️ React SDK 完成版
 ```bash
-pnpm dev:exercise
+pnpm dev:complete
 ```
-
-### ⚛️ React SDK版（新機能）
-```bash
-pnpm dev:react-sdk
-```
+React SDKの部分が実装済みの`apps/src/components/tabs/react-sdk`が立ち上がります。全ての機能を体験できます。
 
 
 ## 📱 アプリケーション機能
 
 ### 🔗 ウォレット接続
-- **RainbowKit**による美しいウォレット接続UI
+- **RainbowKit**によるウォレット接続
 - MetaMask、WalletConnect対応
 - ネットワーク自動切り替え
 
@@ -122,35 +119,37 @@ jpyc-sample-app/
 │   │   │   └── page.tsx
 │   │   ├── components/           # React コンポーネント
 │   │   │   ├── tabs/            # 各機能タブ
-│   │   │   │   ├── AdminTab.tsx      # 管理画面
-│   │   │   │   ├── ApproveTab.tsx    # Approve機能
-│   │   │   │   ├── AuthorizationTab.tsx # EIP-3009機能
-│   │   │   │   ├── BalanceTab.tsx    # 残高確認
-│   │   │   │   ├── PermitTab.tsx     # Permit機能
-│   │   │   │   ├── PurchaseTab.tsx   # 商品購入
-│   │   │   │   └── TransferTab.tsx   # 送信機能
-│   │   │   ├── Providers.tsx
+│   │   │   │   ├── react-sdk/   # React SDK完成版
+│   │   │   │   │   ├── AdminTab.tsx      # 管理画面
+│   │   │   │   │   ├── ApproveTab.tsx    # Approve機能
+│   │   │   │   │   ├── AuthorizationTab.tsx # EIP-3009機能
+│   │   │   │   │   ├── BalanceTab.tsx    # 残高確認
+│   │   │   │   │   ├── PermitTab.tsx     # Permit機能
+│   │   │   │   │   ├── PurchaseTab.tsx   # 商品購入
+│   │   │   │   │   └── TransferTab.tsx   # 送信機能
+│   │   │   │   └── exercise/    # 学習版（要実装）
+│   │   │   │       ├── ApproveTab.tsx    # Approve学習
+│   │   │   │       ├── AuthorizationTab.tsx # EIP-3009学習
+│   │   │   │       ├── BalanceTab.tsx    # 残高確認学習
+│   │   │   │       ├── PermitTab.tsx     # Permit学習
+│   │   │   │       └── TransferTab.tsx   # 送信学習
+│   │   │   ├── Providers.tsx    # React SDK + RainbowKit設定
 │   │   │   └── WalletConnect.tsx
 │   │   ├── lib/                 # ライブラリ・ユーティリティ
 │   │   │   ├── core/           # コア機能
 │   │   │   │   ├── config.ts        # アドレス設定
 │   │   │   │   ├── payment.ts       # 決済ロジック
 │   │   │   │   └── utils.ts         # ユーティリティ
-│   │   │   ├── sdk/            # 完成版SDK
-│   │   │   │   ├── approve/         # Approve機能
-│   │   │   │   ├── authorization/   # EIP-3009機能
-│   │   │   │   ├── balance/         # 残高取得
-│   │   │   │   ├── permit/          # Permit機能
-│   │   │   │   └── transfer/        # 送信機能
-│   │   │   ├── exercise/       # 練習課題用（未実装）
-│   │   │   │   └── [同じ構造]
 │   │   │   ├── utils/          # 署名・フォーマット関数
-│   │   │   ├── jpycClient.ts   # メインクライアント
+│   │   │   ├── jpycClient.ts   # React SDK + コア機能
 │   │   │   ├── wagmi.ts        # Wagmi設定
 │   │   │   └── viem.ts         # Viem設定
 │   │   └── types/              # TypeScript型定義
 │   ├── package.json
 │   └── tailwind.config.ts
+├── external/                      # Git Submodule
+│   └── jpyc-sdks/               # JPYC React SDK
+│       └── packages/react/      # React SDK本体
 ├── contracts/                     # Foundryプロジェクト
 │   ├── src/
 │   │   └── PaymentGateway.sol    # メイン決済コントラクト

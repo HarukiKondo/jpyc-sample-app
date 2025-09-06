@@ -6,7 +6,7 @@ import { useAccount } from "wagmi";
 // 
 // 🎯 目標: useTransferWithAuthorization/useReceiveWithAuthorization/useCancelAuthorizationフックを使って、簡単にAuthorization機能を実装しよう！
 //
-// TODO: 240行目、254行目、268行目からauthorization関数を呼び出して実行しよう！
+// TODO: STEP 3でauthorization関数を呼び出して実行しよう！
 // 
 // 📖 JPYC React SDKの手順:
 // 1. JPYC React SDKから必要なフックをインポート
