@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import WalletConnect from "@/components/WalletConnect";
+import NetworkManagement from "@/components/NetworkManagement";
 
 // 環境変数に基づいてコンポーネントを選択
 const mode = process.env.NEXT_PUBLIC_MODE || 'react-sdk';
@@ -189,6 +190,9 @@ export default function Home() {
 
       {/* メインコンテンツ */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* ネットワーク管理 */}
+        <NetworkManagement />
+        
         {/* タブナビゲーション */}
         <div className="mb-8">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
