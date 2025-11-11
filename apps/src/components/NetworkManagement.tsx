@@ -197,20 +197,20 @@ export default function NetworkManagement() {
 
         {/* トークン追加セクション */}
         <div className="pt-6 border-t border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900 mb-3">JPYCトークンを追加</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-3">JPYC Prepaidトークンを追加</h3>
           <div className="bg-gradient-to-br from-primary-50 to-blue-50 border border-primary-200 rounded-xl p-4">
             <div className="flex items-start">
               <div className="flex-shrink-0">
                 <img
-                  src="https://jpyc.jp/img/JPYC_logo.svg"
-                  alt="JPYC Logo"
+                  src="/JPYC_Prepaid_symbol.svg"
+                  alt="JPYC Prepaid Logo"
                   className="w-12 h-12 rounded-full"
                 />
               </div>
               <div className="ml-4 flex-1">
-                <h4 className="font-semibold text-gray-900 mb-1">JPYC トークン</h4>
+                <h4 className="font-semibold text-gray-900 mb-1">JPYC Prepaid トークン</h4>
                 <p className="text-sm text-gray-600 mb-3">
-                  現在のネットワークにJPYCトークンを追加します
+                  現在のネットワークにJPYC Prepaidトークンを追加します
                   {currentNetworkKey && currentNetworkKey !== 'localhost' && (
                     <span className="block text-xs font-mono mt-1 text-gray-500">
                       {JPYC_TOKEN_CONFIGS[currentNetworkKey as keyof typeof JPYC_TOKEN_CONFIGS]?.address}
@@ -275,7 +275,7 @@ export default function NetworkManagement() {
                       <strong>切替</strong>: 指定したネットワークに切り替えます（未追加の場合は自動的に追加します）
                     </li>
                     <li>
-                      <strong>トークン追加</strong>: 現在接続中のネットワークのJPYCトークンをウォレットに追加します
+                      <strong>トークン追加</strong>: 現在接続中のネットワークのJPYC Prepaidトークンをウォレットに追加します
                     </li>
                   </ul>
                 </div>

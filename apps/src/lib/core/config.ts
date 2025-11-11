@@ -41,27 +41,27 @@ export const NETWORK_CONFIGS = {
 export const JPYC_TOKEN_CONFIGS = {
   sepolia: {
     address: '0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB',
-    symbol: 'JPYC',
+    symbol: 'JPYC Prepaid',
     decimals: 18,
-    image: 'https://jpyc.jp/img/JPYC_logo.svg',
+    image: '/JPYC_Prepaid_symbol.svg',
   },
   polygonAmoy: {
     address: '0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB',
-    symbol: 'JPYC',
+    symbol: 'JPYC Prepaid',
     decimals: 18,
-    image: 'https://jpyc.jp/img/JPYC_logo.svg',
+    image: '/JPYC_Prepaid_symbol.svg',
   },
   avalancheFuji: {
     address: '0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB',
-    symbol: 'JPYC',
+    symbol: 'JPYC Prepaid',
     decimals: 18,
-    image: 'https://jpyc.jp/img/JPYC_logo.svg',
+    image: '/JPYC_Prepaid_symbol.svg',
   },
   localhost: {
     address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-    symbol: 'JPYC',
+    symbol: 'JPYC Prepaid',
     decimals: 18,
-    image: 'https://jpyc.jp/img/JPYC_logo.svg',
+    image: '/JPYC_Prepaid_symbol.svg',
   },
 } as const;
 
@@ -227,7 +227,7 @@ export const addTokenToWallet = async (
     });
 
     if (wasAdded) {
-      return { success: true, message: 'JPYCトークンを追加しました' };
+      return { success: true, message: 'JPYC Prepaidトークンを追加しました' };
     } else {
       throw new Error('トークンの追加がキャンセルされました');
     }
