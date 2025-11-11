@@ -38,28 +38,29 @@ export const NETWORK_CONFIGS = {
 } as const;
 
 // JPYCトークン設定
+// 注意: symbolはコントラクト上の実際の値と一致させる必要があります
 export const JPYC_TOKEN_CONFIGS = {
   sepolia: {
     address: '0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB',
-    symbol: 'JPYC Prepaid',
+    symbol: 'JPYC',
     decimals: 18,
     image: '/JPYC_Prepaid_symbol.svg',
   },
   polygonAmoy: {
     address: '0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB',
-    symbol: 'JPYC Prepaid',
+    symbol: 'JPYC',
     decimals: 18,
     image: '/JPYC_Prepaid_symbol.svg',
   },
   avalancheFuji: {
     address: '0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB',
-    symbol: 'JPYC Prepaid',
+    symbol: 'JPYC',
     decimals: 18,
     image: '/JPYC_Prepaid_symbol.svg',
   },
   localhost: {
     address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-    symbol: 'JPYC Prepaid',
+    symbol: 'JPYC',
     decimals: 18,
     image: '/JPYC_Prepaid_symbol.svg',
   },
