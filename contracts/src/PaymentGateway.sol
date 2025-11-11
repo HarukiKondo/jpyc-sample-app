@@ -42,12 +42,19 @@ contract PaymentGateway is ReentrancyGuard {
         merchant = _merchant;
     }
 
+    /**
+     * Approve + Transferのメソッド
+     */
     function pay(bytes32 orderId, uint256 amount, bytes32 metaHash) external nonReentrant {
         _consumeOrder(orderId);
         jpyc.safeTransferFrom(msg.sender, merchant, amount);
+        // イベント発火
         emit OrderPaid(orderId, msg.sender, amount, metaHash);
     }
 
+    /**
+     * EIP-2612: Permitでtransferするメソッド
+     */
     function permitAndPay(
         bytes32 orderId,
         uint256 amount,
@@ -67,10 +74,13 @@ contract PaymentGateway is ReentrancyGuard {
         // 2) pull funds
         jpyc.safeTransferFrom(owner, merchant, amount);
 
+        // イベント発火
         emit OrderPaid(orderId, owner, amount, metaHash);
     }
 
-    // EIP-3009: transferWithAuthorization 経由での決済
+    /**
+     * EIP-3009: transferWithAuthorization 経由での決済
+     */
     function payWithTransferAuthorization(
         bytes32 orderId,
         uint256 amount,
@@ -94,6 +104,7 @@ contract PaymentGateway is ReentrancyGuard {
             v, r, s
         );
         
+        // イベント発火
         emit OrderPaid(orderId, from, amount, metaHash);
     }
 
