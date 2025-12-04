@@ -6,6 +6,9 @@ import "../src/PaymentGateway.sol";
 import "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
+/**
+ * モック用のJPYCスマートコントラクト
+ */
 contract MockJPYC is ERC20, ERC20Permit {
     constructor() ERC20("JPY Coin", "JPYC") ERC20Permit("JPY Coin") {
         _mint(msg.sender, 1000000 * 10**decimals());
@@ -16,12 +19,19 @@ contract MockJPYC is ERC20, ERC20Permit {
     }
 }
 
+/**
+ * PaymentGatewayコントラクト用のテストコード
+ */
 contract PaymentGatewayTest is Test {
     PaymentGateway public gateway;
     MockJPYC public jpyc;
     address public merchant = makeAddr("merchant");
     address public user = makeAddr("user");
 
+    /**
+     * テスト実行前のセットアップメソッド
+　　 * JPYCコントラクトとPaymetnGatewayコントラクトのデプロイ及びJPYCの発行を行う。
+     */
     function setUp() public {
         jpyc = new MockJPYC();
         gateway = new PaymentGateway(address(jpyc), merchant);
@@ -30,7 +40,11 @@ contract PaymentGatewayTest is Test {
         jpyc.mint(user, 1000 * 10**jpyc.decimals());
     }
 
+    /**
+     * 通常のJPYC支払いテストコード
+     */
     function testPay() public {
+        // 支払いIDを作成
         bytes32 orderId = keccak256("order1");
         uint256 amount = 100 * 10**jpyc.decimals();
         bytes32 metaHash = keccak256("metadata");
@@ -43,6 +57,7 @@ contract PaymentGatewayTest is Test {
         // pay
         vm.expectEmit(true, true, false, true);
         emit PaymentGateway.OrderPaid(orderId, user, amount, metaHash);
+        // 支払い処理を実行
         gateway.pay(orderId, amount, metaHash);
         
         vm.stopPrank();
